@@ -2,14 +2,17 @@ use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::camera::MainCamera;
 
-// A unit struct to help identify the color-changing Text component
 #[derive(Component)]
 struct CursorText;
+
+#[derive(Resource, Default)]
+pub struct MousePosition(Vec2);
 
 fn update(
     q_window: Query<&Window, With<PrimaryWindow>>,
     q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     mut text: Query<&mut Text, With<CursorText>>,
+    mut coords: ResMut<MousePosition>,
 ) {
     let (camera, camera_transform) = q_camera.single();
 
@@ -20,6 +23,8 @@ fn update(
         .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
         .map(|ray| ray.origin.truncate())
     {
+        coords.0 = world_position;
+
         for mut text in &mut text {
             text.sections[1].value = format!("{:.0}/{:.0}", world_position.x, world_position.y);
         }
@@ -28,12 +33,10 @@ fn update(
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
-        // Create a TextBundle that has a Text with a list of sections.
         TextBundle::from_sections([
             TextSection::new(
                 "x/y: ",
                 TextStyle {
-                    // This font is loaded and will be used instead of the default font.
                     font: asset_server.load("fonts/FiraMono-Regular.ttf"),
                     font_size: 20.0,
                     ..default()
@@ -50,6 +53,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 pub fn mouse_plugin(app: &mut App) {
+    app.init_resource::<MousePosition>();
     app.add_systems(Startup, setup);
     app.add_systems(Update, update);
 }

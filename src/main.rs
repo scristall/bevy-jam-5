@@ -11,11 +11,13 @@ mod audio;
 mod background;
 mod camera;
 mod mouse;
+mod player;
 
 use audio::audio_plugin;
 use background::background_plugin;
 use camera::camera_plugin;
 use mouse::mouse_plugin;
+use player::player_plugin;
 
 fn main() {
     App::new()
@@ -26,6 +28,12 @@ fn main() {
             meta_check: AssetMetaCheck::Never,
             ..default()
         }))
-        .add_plugins((camera_plugin, mouse_plugin, background_plugin, audio_plugin))
+        .add_plugins((
+            camera_plugin,
+            mouse_plugin,
+            background_plugin,
+            audio_plugin,
+            player_plugin,
+        ))
         .run();
 }

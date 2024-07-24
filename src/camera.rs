@@ -1,6 +1,5 @@
 use bevy::{prelude::*, render::camera::ScalingMode};
 
-/// Used to help identify our main camera
 #[derive(Component)]
 pub struct MainCamera;
 
