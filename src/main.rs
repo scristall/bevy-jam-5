@@ -7,6 +7,16 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
 
+mod audio;
+mod background;
+mod camera;
+mod mouse;
+
+use audio::audio_plugin;
+use background::background_plugin;
+use camera::camera_plugin;
+use mouse::mouse_plugin;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(AssetPlugin {
@@ -16,14 +26,6 @@ fn main() {
             meta_check: AssetMetaCheck::Never,
             ..default()
         }))
-        .add_systems(Startup, setup)
+        .add_plugins((camera_plugin, mouse_plugin, background_plugin, audio_plugin))
         .run();
-}
-
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2dBundle::default());
-    commands.spawn(SpriteBundle {
-        texture: asset_server.load("ducky.png"),
-        ..Default::default()
-    });
 }
