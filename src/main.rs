@@ -11,6 +11,7 @@ mod audio;
 mod background;
 mod camera;
 mod mouse;
+mod pixelate;
 mod player;
 
 use audio::audio_plugin;
@@ -35,5 +36,6 @@ fn main() {
             audio_plugin,
             player_plugin,
         ))
+        .add_plugins(pixelate::PixelatePlugin)
         .run();
 }
