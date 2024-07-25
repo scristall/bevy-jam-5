@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*};
 
 #[allow(dead_code)]
 pub enum Area {
@@ -11,24 +11,27 @@ pub enum Area {
 pub struct Player;
 
 #[derive(Component)]
-pub struct AmRadioFreq(pub u32);
+pub struct AmRadioFreq(pub i32);
 
 fn setup(mut commands: Commands) {
-    commands.spawn((Player, AmRadioFreq(600)));
+    commands.spawn((Player, AmRadioFreq(680)));
 }
 
 fn update(
     mut radio_freqs: Query<&mut AmRadioFreq, With<Player>>,
     buttons: Res<ButtonInput<MouseButton>>,
+    keyboard: Res<ButtonInput<KeyCode>>,
 ) {
+    let mut radio_freq = radio_freqs.single_mut();
     if buttons.just_pressed(MouseButton::Left) {
-        for mut radio_freq in &mut radio_freqs {
-            if radio_freq.0 == 600 {
-                radio_freq.0 = 720;
-            } else {
-                radio_freq.0 = 600;
-            }
-        }
+        radio_freq.0 = 720;
+    }
+
+    if keyboard.just_pressed(KeyCode::ArrowLeft) {
+        radio_freq.0 -= 1;
+    }
+    if keyboard.just_pressed(KeyCode::ArrowRight) {
+        radio_freq.0 += 1;
     }
 }
 

@@ -3,33 +3,79 @@ use bevy_kira_audio::prelude::*;
 
 use crate::player::{AmRadioFreq, Player};
 
+// Outer bandwidth defines when the channel starts to be heard
+// Inner bandwidth defines when the channel is at max volume
+const STATION_OUTER_BANDWIDTH_DELTA: i32 = 20;
+const STATION_INNER_BANDWIDTH_DELTA: i32 = 10;
+
 #[derive(Component)]
 pub struct RadioStation {
     handle: Handle<AudioInstance>,
-    frequency: u32, // in kHz
+    frequency: i32, // in kHz
+    playing: bool,
 }
 
 #[derive(Resource)]
 #[allow(dead_code)]
 pub struct WhiteNoise(Handle<AudioInstance>);
 
+impl RadioStation {
+    fn freq_in_band(&self, freq: i32) -> bool {
+        (freq - self.frequency).abs() <= STATION_OUTER_BANDWIDTH_DELTA
+    }
+
+    fn freq_to_volume(&self, freq: i32) -> f64 {
+        if !self.freq_in_band(freq) {
+            return 0.0;
+        }
+
+        let delta = (freq - self.frequency).abs();
+        if delta <= STATION_INNER_BANDWIDTH_DELTA {
+            return 1.0;
+        }
+
+        let volume_sqrt =
+            (STATION_OUTER_BANDWIDTH_DELTA - STATION_INNER_BANDWIDTH_DELTA) as f64 / delta as f64;
+
+        volume_sqrt * volume_sqrt
+    }
+}
+
 fn update(
     radio_freqs: Query<&AmRadioFreq, (With<Player>, Changed<AmRadioFreq>)>,
-    radio_stations: Query<&RadioStation>,
+    whitenoise: Res<WhiteNoise>,
+    mut radio_stations: Query<&mut RadioStation>,
     mut audio_instances: ResMut<Assets<AudioInstance>>,
     time: Res<Time>,
 ) {
+    if radio_freqs.is_empty() {
+        return;
+    }
+
+    let mut whitenoise_volume = 1.0;
     for radio_freq in &radio_freqs {
-        for radio_station in &radio_stations {
+        for mut radio_station in &mut radio_stations {
             if let Some(instance) = audio_instances.get_mut(&radio_station.handle) {
-                if radio_freq.0 == radio_station.frequency {
-                    instance.seek_to(time.elapsed_seconds_f64());
-                    instance.resume(AudioTween::default());
+                if radio_station.freq_in_band(radio_freq.0) {
+                    if !radio_station.playing {
+                        instance.seek_to(time.elapsed_seconds_f64());
+                        instance.resume(AudioTween::default());
+                        radio_station.playing = true;
+                    }
+
+                    let station_volume = radio_station.freq_to_volume(radio_freq.0);
+                    instance.set_volume(station_volume, AudioTween::default());
+
+                    whitenoise_volume = 0.5 + 0.5 * (1.0 - station_volume);
                 } else {
                     instance.pause(AudioTween::default());
+                    radio_station.playing = false;
                 }
             }
         }
+    }
+    if let Some(instance) = audio_instances.get_mut(&whitenoise.0) {
+        instance.set_volume(whitenoise_volume, AudioTween::default());
     }
 }
 
@@ -47,6 +93,16 @@ fn setup(mut commands: Commands, audio: Res<Audio>, asset_server: Res<AssetServe
             .paused()
             .handle(),
         frequency: 720,
+        playing: false,
+    });
+    commands.spawn(RadioStation {
+        handle: audio
+            .play(asset_server.load("audio/news.ogg"))
+            .looped()
+            .paused()
+            .handle(),
+        frequency: 640,
+        playing: false,
     });
 }
 
