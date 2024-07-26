@@ -5,7 +5,7 @@ use crate::player::{AmRadioFreq, Player};
 
 // Outer bandwidth defines when the channel starts to be heard
 // Inner bandwidth defines when the channel is at max volume
-const STATION_OUTER_BANDWIDTH_DELTA: i32 = 20;
+const STATION_OUTER_BANDWIDTH_DELTA: i32 = 30;
 const STATION_INNER_BANDWIDTH_DELTA: i32 = 10;
 
 #[derive(Component)]
@@ -34,8 +34,9 @@ impl RadioStation {
             return 1.0;
         }
 
-        let volume_sqrt =
-            (STATION_OUTER_BANDWIDTH_DELTA - STATION_INNER_BANDWIDTH_DELTA) as f64 / delta as f64;
+        let volume_sqrt = 1.0
+            - ((delta - STATION_INNER_BANDWIDTH_DELTA) as f64
+                / (STATION_OUTER_BANDWIDTH_DELTA - STATION_INNER_BANDWIDTH_DELTA) as f64);
 
         volume_sqrt * volume_sqrt
     }
@@ -65,6 +66,7 @@ fn update(
 
                     let station_volume = radio_station.freq_to_volume(radio_freq.0);
                     instance.set_volume(station_volume, AudioTween::default());
+                    eprintln!("{}", station_volume);
 
                     whitenoise_volume = 0.5 + 0.5 * (1.0 - station_volume);
                 } else {
@@ -92,7 +94,16 @@ fn setup(mut commands: Commands, audio: Res<Audio>, asset_server: Res<AssetServe
             .looped()
             .paused()
             .handle(),
-        frequency: 720,
+        frequency: 700,
+        playing: false,
+    });
+    commands.spawn(RadioStation {
+        handle: audio
+            .play(asset_server.load("audio/song.ogg"))
+            .looped()
+            .paused()
+            .handle(),
+        frequency: 750,
         playing: false,
     });
     commands.spawn(RadioStation {
@@ -101,7 +112,7 @@ fn setup(mut commands: Commands, audio: Res<Audio>, asset_server: Res<AssetServe
             .looped()
             .paused()
             .handle(),
-        frequency: 640,
+        frequency: 610,
         playing: false,
     });
 }
