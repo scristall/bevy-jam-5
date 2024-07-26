@@ -1,4 +1,4 @@
-# Bevy GitHub CI Template
+# radio-spooky
 
 This repo show how to set up CI on a GitHub project for Bevy.
 

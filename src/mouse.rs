@@ -1,6 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::camera::MainCamera;
+use std::fmt::Write;
 
 #[derive(Component)]
 struct CursorText;
@@ -14,6 +15,17 @@ fn update(
     mut text: Query<&mut Text, With<CursorText>>,
     mut coords: ResMut<MousePosition>,
 ) {
+    if cfg!(feature = "cursor_debug") {
+        debug_update(&q_window, &q_camera, &mut text, &mut coords);
+    }
+}
+
+fn debug_update(
+    q_window: &Query<&Window, With<PrimaryWindow>>,
+    q_camera: &Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+    text: &mut Query<&mut Text, With<CursorText>>,
+    coords: &mut ResMut<MousePosition>,
+) {
     let (camera, camera_transform) = q_camera.single();
 
     let window = q_window.single();
@@ -25,13 +37,25 @@ fn update(
     {
         coords.0 = world_position;
 
-        for mut text in &mut text {
-            text.sections[1].value = format!("{:.0}/{:.0}", world_position.x, world_position.y);
+        for mut text in text {
+            text.sections[1].value.clear();
+            write!(
+                &mut text.sections[1].value,
+                "{:.0}/{:.0}",
+                world_position.x, world_position.y
+            )
+            .unwrap();
         }
     }
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    if cfg!(feature = "cursor_debug") {
+        debug_setup(&mut commands, &asset_server)
+    }
+}
+
+fn debug_setup(commands: &mut Commands, asset_server: &Res<AssetServer>) {
     commands.spawn((
         TextBundle::from_sections([
             TextSection::new(
