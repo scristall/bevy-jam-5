@@ -1,6 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::camera::MainCamera;
+#[cfg(feature = "cursor_debug")]
 use std::fmt::Write;
 
 #[derive(Component)]
@@ -9,25 +10,32 @@ struct CursorText;
 #[derive(Resource, Default)]
 pub struct MousePosition(Vec2);
 
+#[cfg(not(feature = "cursor_debug"))]
+fn update(
+    q_window: Query<&Window, With<PrimaryWindow>>,
+    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+    mut coords: ResMut<MousePosition>,
+) {
+    always_update(q_window, q_camera, &mut coords)
+}
+
+#[cfg(feature = "cursor_debug")]
 fn update(
     q_window: Query<&Window, With<PrimaryWindow>>,
     q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     mut text: Query<&mut Text, With<CursorText>>,
     mut coords: ResMut<MousePosition>,
 ) {
-    if cfg!(feature = "cursor_debug") {
-        debug_update(&q_window, &q_camera, &mut text, &mut coords);
-    }
+    always_update(q_window, q_camera, &mut coords);
+    debug_update(&mut text, coords.0);
 }
 
-fn debug_update(
-    q_window: &Query<&Window, With<PrimaryWindow>>,
-    q_camera: &Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-    text: &mut Query<&mut Text, With<CursorText>>,
+fn always_update(
+    q_window: Query<&Window, With<PrimaryWindow>>,
+    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     coords: &mut ResMut<MousePosition>,
 ) {
     let (camera, camera_transform) = q_camera.single();
-
     let window = q_window.single();
 
     if let Some(world_position) = window
@@ -36,16 +44,14 @@ fn debug_update(
         .map(|ray| ray.origin.truncate())
     {
         coords.0 = world_position;
+    }
+}
 
-        for mut text in text {
-            text.sections[1].value.clear();
-            write!(
-                &mut text.sections[1].value,
-                "{:.0}/{:.0}",
-                world_position.x, world_position.y
-            )
-            .unwrap();
-        }
+#[cfg(feature = "cursor_debug")]
+fn debug_update(text: &mut Query<&mut Text, With<CursorText>>, pos: Vec2) {
+    for mut text in text {
+        text.sections[1].value.clear();
+        write!(&mut text.sections[1].value, "{:.0}/{:.0}", pos.x, pos.y).unwrap();
     }
 }
 
