@@ -12,11 +12,7 @@ fn setup(mut commands: Commands) {
     let mut settings = crate::pixelate::PixelateSettings::default();
     settings.block_size = PIXELATE_BLOCK_SIZE;
 
-    commands.spawn((
-        camera,
-        MainCamera,
-        settings,
-    ));
+    commands.spawn((camera, MainCamera, settings));
 }
 
 pub fn camera_plugin(app: &mut App) {
