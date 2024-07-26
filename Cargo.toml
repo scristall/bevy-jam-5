@@ -43,3 +43,8 @@ bevy = { version = "0.14", default-features = false, features = [
     "sysinfo_plugin",
 ] }
 bevy_kira_audio = "0.20.0"
+
+[features]
+default = []
+cursor_debug = []
+debug = ["cursor_debug"]
