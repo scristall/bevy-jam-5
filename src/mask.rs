@@ -33,9 +33,9 @@ use bevy::{
 };
 
 /// It is generally encouraged to set up post processing effects as a plugin
-pub struct PixelatePlugin;
+pub struct MaskPlugin;
 
-impl Plugin for PixelatePlugin {
+impl Plugin for MaskPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             // The settings will be a component that lives in the main world but will
@@ -44,11 +44,11 @@ impl Plugin for PixelatePlugin {
             // This plugin will take care of extracting it automatically.
             // It's important to derive [`ExtractComponent`] on [`PostProcessingSettings`]
             // for this plugin to work correctly.
-            ExtractComponentPlugin::<PixelateSettings>::default(),
+            ExtractComponentPlugin::<MaskSettings>::default(),
             // The settings will also be the data used in the shader.
             // This plugin will prepare the component for the GPU by creating a uniform buffer
             // and writing the data to that buffer every frame.
-            UniformComponentPlugin::<PixelateSettings>::default(),
+            UniformComponentPlugin::<MaskSettings>::default(),
         ));
 
         // We need to get the render app from the main app
@@ -116,11 +116,11 @@ impl ViewNode for PostProcessNode {
     // This query will only run on the view entity
     type ViewQuery = (
         &'static ViewTarget,
-        // This makes sure the node only runs on cameras with the PixelateSettings component
-        &'static PixelateSettings,
+        // This makes sure the node only runs on cameras with the MaskSettings component
+        &'static MaskSettings,
         // As there could be multiple post processing components sent to the GPU (one per camera),
         // we need to get the index of the one that is associated with the current view.
-        &'static DynamicUniformIndex<PixelateSettings>,
+        &'static DynamicUniformIndex<MaskSettings>,
     );
 
     // Runs the node logic
@@ -153,7 +153,7 @@ impl ViewNode for PostProcessNode {
         };
 
         // Get the settings uniform binding
-        let settings_uniforms = world.resource::<ComponentUniforms<PixelateSettings>>();
+        let settings_uniforms = world.resource::<ComponentUniforms<MaskSettings>>();
         let Some(settings_binding) = settings_uniforms.uniforms().binding() else {
             return Ok(());
         };
@@ -175,7 +175,7 @@ impl ViewNode for PostProcessNode {
         // The only way to have the correct source/destination for the bind_group
         // is to make sure you get it during the node execution.
         let bind_group = render_context.render_device().create_bind_group(
-            "pixelate_bind_group",
+            "mask_bind_group",
             &post_process_pipeline.layout,
             // It's important for this to match the BindGroupLayout defined in the PostProcessPipeline
             &BindGroupEntries::sequential((
@@ -190,7 +190,7 @@ impl ViewNode for PostProcessNode {
 
         // Begin the render pass
         let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
-            label: Some("pixelate_pass"),
+            label: Some("mask_pass"),
             color_attachments: &[Some(RenderPassColorAttachment {
                 // We need to specify the post process destination view here
                 // to make sure we write to the appropriate texture.
@@ -230,7 +230,7 @@ impl FromWorld for PostProcessPipeline {
 
         // We need to define the bind group layout used for our pipeline
         let layout = render_device.create_bind_group_layout(
-            "pixelate_bind_group_layout",
+            "mask_bind_group_layout",
             &BindGroupLayoutEntries::sequential(
                 // The layout entries will only be visible in the fragment stage
                 ShaderStages::FRAGMENT,
@@ -240,7 +240,7 @@ impl FromWorld for PostProcessPipeline {
                     // The sampler that will be used to sample the screen texture
                     sampler(SamplerBindingType::Filtering),
                     // The settings uniform that will control the effect
-                    uniform_buffer::<PixelateSettings>(true),
+                    uniform_buffer::<MaskSettings>(true),
                 ),
             ),
         );
@@ -249,13 +249,13 @@ impl FromWorld for PostProcessPipeline {
         let sampler = render_device.create_sampler(&SamplerDescriptor::default());
 
         // Get the shader handle
-        let shader = world.load_asset("shaders/pixelate.wgsl");
+        let shader = world.load_asset("shaders/mask.wgsl");
 
         let pipeline_id = world
             .resource_mut::<PipelineCache>()
             // This will add the pipeline to the cache and queue it's creation
             .queue_render_pipeline(RenderPipelineDescriptor {
-                label: Some("pixelate_pipeline".into()),
+                label: Some("mask_pipeline".into()),
                 layout: vec![layout.clone()],
                 // This will setup a fullscreen triangle for the vertex state
                 vertex: fullscreen_shader_vertex_state(),
@@ -289,8 +289,9 @@ impl FromWorld for PostProcessPipeline {
 
 // This is the component that will get passed to the shader
 #[derive(Component, Default, Clone, Copy, ExtractComponent, ShaderType)]
-pub struct PixelateSettings {
-    pub block_size: f32,
+pub struct MaskSettings {
+    pub strength: f32,
+    pub fade: f32,
     // WebGL2 structs must be 16 byte aligned.
     #[cfg(feature = "webgl2")]
     _webgl2_padding: Vec3,
@@ -308,11 +309,11 @@ fn sawtooth_wave(time: f32) -> f32 {
 }
 
 // Change the intensity over time to show that the effect is controlled from the main world
-fn update_settings(mut settings: Query<&mut PixelateSettings>, time: Res<Time>) {
+fn update_settings(mut settings: Query<&mut MaskSettings>, time: Res<Time>) {
     for mut setting in &mut settings {
-        let intensity_scale = 3.0;
-        let intensity_base = 3.0;
-        let intensity_speed = 1.0 / 1200.0;
+        let intensity_scale = 100.0;
+        let intensity_base = 5000.0;
+        let intensity_speed = 1.0 / 120.0;
 
         let mut intensity = sawtooth_wave(intensity_speed * time.elapsed_seconds());
 
@@ -320,6 +321,7 @@ fn update_settings(mut settings: Query<&mut PixelateSettings>, time: Res<Time>) 
 
         intensity += intensity_base;
 
-        setting.block_size = intensity;
+        setting.strength = intensity;
+        setting.fade = 0.05;
     }
 }

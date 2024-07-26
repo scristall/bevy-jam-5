@@ -11,13 +11,16 @@ mod audio;
 mod background;
 mod camera;
 mod input;
+mod mask;
 mod pixelate;
 mod player;
+mod tv;
 
 use audio::audio_plugin;
 use background::background_plugin;
 use camera::camera_plugin;
 use player::player_plugin;
+use tv::tv_plugin;
 
 fn main() {
     App::new()
@@ -29,6 +32,7 @@ fn main() {
             ..default()
         }))
         .add_plugins((
+            tv_plugin,
             camera_plugin,
             input::plugin,
             background_plugin,
@@ -36,5 +40,6 @@ fn main() {
             player_plugin,
         ))
         .add_plugins(pixelate::PixelatePlugin)
+        .add_plugins(mask::MaskPlugin)
         .run();
 }
