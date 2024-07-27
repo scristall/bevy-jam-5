@@ -15,10 +15,10 @@ pub struct TvControlled {
 pub struct TvFalling;
 
 enum Direction {
-    NORTH,
-    EAST,
-    SOUTH,
-    WEST,
+    North,
+    East,
+    South,
+    West,
 }
 
 const EDGE_GAP: f32 = 10.0;
@@ -33,22 +33,22 @@ fn check_puzzle(puzzle_pos: u32, dir: Direction) -> u32 {
     }
 
     match dir {
-        Direction::NORTH => 0,
-        Direction::EAST => {
+        Direction::North => 0,
+        Direction::East => {
             if puzzle_pos == 0 {
                 1
             } else {
                 0
             }
         }
-        Direction::SOUTH => {
+        Direction::South => {
             if puzzle_pos == 1 {
                 2
             } else {
                 0
             }
         }
-        Direction::WEST => {
+        Direction::West => {
             if puzzle_pos == 2 {
                 3
             } else {
@@ -100,19 +100,19 @@ fn update(
 
         if controlled.0.translation.x > X_BOUND {
             controlled.0.translation.x = -X_BOUND + EDGE_GAP;
-            screen_change_dir = Some(Direction::EAST);
+            screen_change_dir = Some(Direction::East);
         }
         if controlled.0.translation.x < -X_BOUND {
             controlled.0.translation.x = X_BOUND - EDGE_GAP;
-            screen_change_dir = Some(Direction::WEST);
+            screen_change_dir = Some(Direction::West);
         }
         if controlled.0.translation.y > Y_BOUND {
             controlled.0.translation.y = -Y_BOUND + EDGE_GAP;
-            screen_change_dir = Some(Direction::NORTH);
+            screen_change_dir = Some(Direction::North);
         }
         if controlled.0.translation.y < -Y_BOUND {
             controlled.0.translation.y = Y_BOUND - EDGE_GAP;
-            screen_change_dir = Some(Direction::SOUTH);
+            screen_change_dir = Some(Direction::South);
         }
 
         if let Some(dir) = screen_change_dir {
@@ -146,17 +146,17 @@ fn update(
             }
         }
 
-        if controlled.1.puzzle_pos == PUZZLE_SOLVED {
-            if controlled.0.translation.distance(Vec3::new(0.0, 0.0, 0.0)) < 30.0 {
-                commands
-                    .entity(controlled.2)
-                    .remove::<TvControlled>()
-                    .insert(TvFalling);
-                controlled.0.translation = Vec3::new(0.0, 0.0, 2.0);
-                audio
-                    .play(asset_server.load("audio/tv_die_whirlpool.ogg"))
-                    .with_volume(0.3);
-            }
+        if controlled.1.puzzle_pos == PUZZLE_SOLVED
+            && controlled.0.translation.distance(Vec3::new(0.0, 0.0, 0.0)) < 30.0
+        {
+            commands
+                .entity(controlled.2)
+                .remove::<TvControlled>()
+                .insert(TvFalling);
+            controlled.0.translation = Vec3::new(0.0, 0.0, 2.0);
+            audio
+                .play(asset_server.load("audio/tv_die_whirlpool.ogg"))
+                .with_volume(0.3);
         }
     }
 }

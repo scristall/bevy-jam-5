@@ -85,7 +85,7 @@ pub fn setup(
     ));
 
     let material_handle = materials.add(ColorMaterial {
-        color: Color::WHITE.into(),
+        color: Color::WHITE,
         texture: Some(image_handle),
     });
 
