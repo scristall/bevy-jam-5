@@ -2,6 +2,8 @@ use bevy::{
     prelude::*,
     render::{
         camera::ScalingMode,
+        mesh::{Indices, PrimitiveTopology},
+        render_asset::RenderAssetUsages,
         render_resource::{
             Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
         },
@@ -11,12 +13,31 @@ use bevy::{
 };
 
 #[derive(Component)]
-pub struct TvMonster;
+pub struct TvBackground;
 
-#[derive(Component)]
-pub struct TvPlayer;
+fn skewed_rectangle_builder(rect: Rectangle) -> Mesh {
+    let [hw, hh] = [rect.half_size.x, rect.half_size.y];
+    let positions = vec![
+        [hw, hh * 0.75, 0.0],
+        [-hw, hh, 0.0],
+        [-hw, -hh, 0.0],
+        [hw, -hh * 0.75, 0.0],
+    ];
+    let normals = vec![[0.0, 0.0, 1.0]; 4];
+    let uvs = vec![[1.0, 0.0], [0.0, 0.0], [0.0, 1.0], [1.0, 1.0]];
+    let indices = Indices::U32(vec![0, 1, 2, 0, 2, 3]);
 
-fn setup(
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_indices(indices)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
+}
+
+pub fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut images: ResMut<Assets<Image>>,
@@ -60,21 +81,30 @@ fn setup(
     commands.spawn((
         camera,
         first_pass_layer.clone(),
-        crate::mask::MaskSettings {
-            ..default()
-        },
+        crate::mask::MaskSettings { ..default() },
     ));
 
     let material_handle = materials.add(ColorMaterial {
         color: Color::WHITE.into(),
         texture: Some(image_handle),
     });
+
+    let rect = Rectangle::new(400.0, 300.0);
+
     commands.spawn(MaterialMesh2dBundle {
-        mesh: Mesh2dHandle(meshes.add(Rectangle::new(400.0, 300.0))),
-        material: material_handle,
+        mesh: Mesh2dHandle(meshes.add(rect)),
+        material: material_handle.clone(),
         transform: Transform::from_xyz(
-            // Distribute shapes from -X_EXTENT/2 to +X_EXTENT/2.
-            -400.0, 0.0, 2.0,
+            -400.0, -200.0, 2.0,
+        ),
+        ..default()
+    });
+
+    commands.spawn(MaterialMesh2dBundle {
+        mesh: Mesh2dHandle(meshes.add(skewed_rectangle_builder(rect))),
+        material: material_handle.clone(),
+        transform: Transform::from_xyz(
+            -400.0, 200.0, 2.0,
         ),
         ..default()
     });
@@ -84,58 +114,11 @@ fn setup(
             texture: asset_server.load("images/compass.png"),
             ..Default::default()
         },
+        TvBackground,
         first_pass_layer.clone(),
-    ));
-    commands.spawn((
-        SpriteBundle {
-            texture: asset_server.load("images/tv_monster.png"),
-            transform: Transform::from_xyz(
-                // Distribute shapes from -X_EXTENT/2 to +X_EXTENT/2.
-                100.0, 0.0, 2.0,
-            ),
-            ..Default::default()
-        },
-        first_pass_layer.clone(),
-        TvMonster,
-    ));
-    commands.spawn((
-        SpriteBundle {
-            texture: asset_server.load("images/tv_player.png"),
-            transform: Transform::from_xyz(
-                // Distribute shapes from -X_EXTENT/2 to +X_EXTENT/2.
-                -100.0, 0.0, 2.0,
-            ),
-            ..Default::default()
-        },
-        first_pass_layer.clone(),
-        TvPlayer,
     ));
 }
 
-fn update(
-    mut tv_player: Query<&mut Transform, With<TvPlayer>>,
-    keyboard: Res<ButtonInput<KeyCode>>,
-) {
-    let mut tv_player = tv_player.single_mut();
-
-    if keyboard.pressed(KeyCode::KeyA) {
-        tv_player.translation.x -= 1.0;
-    }
-
-    if keyboard.pressed(KeyCode::KeyD) {
-        tv_player.translation.x += 1.0;
-    }
-
-    if keyboard.pressed(KeyCode::KeyS) {
-        tv_player.translation.y -= 1.0;
-    }
-
-    if keyboard.pressed(KeyCode::KeyW) {
-        tv_player.translation.y += 1.0;
-    }
-}
-
-pub fn tv_plugin(app: &mut App) {
+pub fn screen_plugin(app: &mut App) {
     app.add_systems(Startup, setup);
-    app.add_systems(Update, update);
 }
