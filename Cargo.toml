@@ -46,6 +46,5 @@ bevy_kira_audio = "0.20.0"
 
 [features]
 default = []
-debug = ["cursor_debug"]
-cursor_debug = []
+debug_input = []
 webgl2 = []

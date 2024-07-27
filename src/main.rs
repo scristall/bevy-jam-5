@@ -10,14 +10,13 @@ use bevy::prelude::*;
 mod audio;
 mod background;
 mod camera;
-mod mouse;
+mod input;
 mod pixelate;
 mod player;
 
 use audio::audio_plugin;
 use background::background_plugin;
 use camera::camera_plugin;
-use mouse::mouse_plugin;
 use player::player_plugin;
 
 fn main() {
@@ -31,7 +30,7 @@ fn main() {
         }))
         .add_plugins((
             camera_plugin,
-            mouse_plugin,
+            input::plugin,
             background_plugin,
             audio_plugin,
             player_plugin,
