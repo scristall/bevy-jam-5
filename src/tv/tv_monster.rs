@@ -11,7 +11,7 @@ const KILL_DISTANCE: f32 = 20.0;
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("images/tv_monster.png"),
+            texture: asset_server.load("images/tv/monster.png"),
             transform: Transform::from_xyz(0.0, 0.0, 2.0),
             ..Default::default()
         },

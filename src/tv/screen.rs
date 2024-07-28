@@ -111,7 +111,7 @@ pub fn setup(
 
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("images/compass.png"),
+            texture: asset_server.load("images/tv/compass.png"),
             ..Default::default()
         },
         TvBackground,

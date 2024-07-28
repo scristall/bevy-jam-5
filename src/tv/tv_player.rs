@@ -61,7 +61,7 @@ fn check_puzzle(puzzle_pos: u32, dir: Direction) -> u32 {
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         SpriteBundle {
-            texture: asset_server.load("images/tv_player.png"),
+            texture: asset_server.load("images/tv/player.png"),
             transform: Transform::from_xyz(-160.0, 0.0, 2.0),
             ..Default::default()
         },
@@ -122,7 +122,7 @@ fn update(
                 if next_pos == PUZZLE_SOLVED {
                     commands.spawn((
                         SpriteBundle {
-                            texture: asset_server.load("images/whirl1.png"),
+                            texture: asset_server.load("images/tv/whirl1.png"),
                             ..Default::default()
                         },
                         Whirlpool { speed: 0.1 },
@@ -130,7 +130,7 @@ fn update(
                     ));
                     commands.spawn((
                         SpriteBundle {
-                            texture: asset_server.load("images/whirl2.png"),
+                            texture: asset_server.load("images/tv/whirl2.png"),
                             ..Default::default()
                         },
                         Whirlpool { speed: 0.05 },
@@ -155,7 +155,7 @@ fn update(
                 .insert(TvFalling);
             controlled.0.translation = Vec3::new(0.0, 0.0, 2.0);
             audio
-                .play(asset_server.load("audio/tv_die_whirlpool.ogg"))
+                .play(asset_server.load("audio/tv/die_whirlpool.ogg"))
                 .with_volume(0.3);
         }
     }
@@ -180,7 +180,7 @@ fn update_tv_player_falling(
                         color: Color::linear_rgb(1.0, 0.0, 0.0),
                         ..Default::default()
                     },
-                    texture: asset_server.load("images/tv_win.png"),
+                    texture: asset_server.load("images/tv/win.png"),
                     transform: Transform::from_xyz(0.0, 0.0, 3.0),
                     ..Default::default()
                 },
@@ -203,7 +203,7 @@ fn update_tv_monster_falling(
                         color: Color::linear_rgb(0.0, 1.0, 0.0),
                         ..Default::default()
                     },
-                    texture: asset_server.load("images/tv_win.png"),
+                    texture: asset_server.load("images/tv/win.png"),
                     transform: Transform::from_xyz(0.0, 0.0, 3.0),
                     ..Default::default()
                 },

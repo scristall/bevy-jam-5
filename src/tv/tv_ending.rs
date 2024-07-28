@@ -17,11 +17,11 @@ fn update(
         for e in tv_entities.iter() {
             commands.entity(e).despawn();
             audio
-                .play(asset_server.load("audio/tv_player_die_monster.ogg"))
+                .play(asset_server.load("audio/tv/player_die_monster.ogg"))
                 .with_volume(0.3);
             commands.spawn((
                 SpriteBundle {
-                    texture: asset_server.load("images/tv_doomed.png"),
+                    texture: asset_server.load("images/tv/doomed.png"),
                     transform: Transform::from_xyz(0.0, 0.0, 3.0),
                     ..Default::default()
                 },
