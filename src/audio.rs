@@ -1,7 +1,8 @@
+use crate::components::UpdateSet;
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 
-use crate::player::{AmRadioFreq, Player};
+use crate::gamedata::AmRadioFreq;
 
 // Outer bandwidth defines when the channel starts to be heard
 // Inner bandwidth defines when the channel is at max volume
@@ -43,7 +44,7 @@ impl RadioStation {
 }
 
 fn update(
-    radio_freqs: Query<&AmRadioFreq, (With<Player>, Changed<AmRadioFreq>)>,
+    radio_freqs: Query<&AmRadioFreq, Changed<AmRadioFreq>>,
     whitenoise: Res<WhiteNoise>,
     mut radio_stations: Query<&mut RadioStation>,
     mut audio_instances: ResMut<Assets<AudioInstance>>,
@@ -66,7 +67,6 @@ fn update(
 
                     let station_volume = radio_station.freq_to_volume(radio_freq.0);
                     instance.set_volume(station_volume, AudioTween::default());
-                    eprintln!("{}", station_volume);
 
                     whitenoise_volume = 0.5 + 0.5 * (1.0 - station_volume);
                 } else {
@@ -117,8 +117,8 @@ fn setup(mut commands: Commands, audio: Res<Audio>, asset_server: Res<AssetServe
     });
 }
 
-pub fn audio_plugin(app: &mut App) {
+pub fn plugin(app: &mut App) {
     app.add_plugins(AudioPlugin);
     app.add_systems(Startup, setup);
-    app.add_systems(Update, update);
+    app.add_systems(Update, (update).in_set(UpdateSet::Scene));
 }

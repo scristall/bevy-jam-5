@@ -41,8 +41,8 @@ fn main() {
             camera_plugin,
             input::plugin,
             background_plugin,
-            audio_plugin,
-            player_plugin,
+            audio::plugin,
+            player::plugin,
         ))
         .add_plugins(pixelate::PixelatePlugin)
         .add_plugins(mask::MaskPlugin)
