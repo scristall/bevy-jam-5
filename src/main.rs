@@ -19,11 +19,9 @@ mod player;
 mod radio;
 mod tv;
 
-use audio::audio_plugin;
 use background::background_plugin;
 use camera::camera_plugin;
 use components::UpdateSet;
-use player::player_plugin;
 use tv::tv_plugin;
 
 fn main() {

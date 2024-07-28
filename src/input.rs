@@ -1,10 +1,11 @@
+use bevy::render::view::RenderLayers;
 use bevy::sprite::Anchor;
 use bevy::{prelude::*, window::PrimaryWindow};
 use std::fmt::Write;
 
 use crate::camera::{MainCamera, HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION};
 use crate::components::{Keyboard, UpdateSet};
-use crate::gamedata::debug_text_style;
+use crate::gamedata::{debug_text_style, RenderLayer};
 
 // type DebugText<'world, 'state, 'text> = ParamSet<'world, 'state, (
 //         Query<'world, 'state, &'text mut Text, With<DebugCursorPosText>>,
@@ -87,6 +88,7 @@ fn debug_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         },
         DebugKeyInputText,
+        RenderLayers::layer(RenderLayer::DebugText as usize),
     ));
 }
 

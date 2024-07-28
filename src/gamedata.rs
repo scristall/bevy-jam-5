@@ -1,5 +1,12 @@
 use bevy::prelude::*;
 
+#[derive(Debug, Clone, Copy)]
+#[repr(usize)]
+pub enum RenderLayer {
+    Background = 0,
+    DebugText = 1,
+}
+
 pub fn debug_text_style(asset_server: &Res<AssetServer>) -> TextStyle {
     TextStyle {
         font: asset_server.load("fonts/FiraMono-Regular.ttf"),
@@ -24,6 +31,12 @@ impl ScenePlayerControl {
             TransitionSceneBehind => KeyCode::KeyS,
         }
     }
+}
+
+macro_rules! asset_path {
+    ($p:literal) => {
+        concat!("images/scenes/", $p)
+    };
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Component)]
@@ -71,6 +84,21 @@ impl SceneId {
             _ => return None,
         };
         Some(scene)
+    }
+
+    pub const fn asset_path(self) -> &'static str {
+        use SceneId::*;
+        match self {
+            Desk => asset_path!("desk.png"),
+            Radio => asset_path!("radio.png"),
+            Tv => asset_path!("tv.png"),
+            Lamp => asset_path!("lamp.png"),
+            KeypadDrawer => asset_path!("locked_drawer_1.png"),
+            LockDrawer => asset_path!("locked_drawer_2.png"),
+            BulletinBoard => asset_path!("bulletin_board.png"),
+            Door => asset_path!("door.png"),
+            Behind => asset_path!("restart_universe_button.png"),
+        }
     }
 }
 

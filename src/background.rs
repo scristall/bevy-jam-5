@@ -8,10 +8,6 @@ use std::fmt::Write;
 struct FreqText;
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(SpriteBundle {
-        texture: asset_server.load("images/bg.png"),
-        ..Default::default()
-    });
     commands.spawn((
         Text2dBundle {
             text: Text::from_section(
