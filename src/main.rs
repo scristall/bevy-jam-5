@@ -10,20 +10,25 @@ use bevy::prelude::*;
 mod audio;
 mod background;
 mod camera;
+mod components;
+mod gamedata;
 mod input;
 mod mask;
 mod pixelate;
 mod player;
+mod radio;
 mod tv;
 
 use audio::audio_plugin;
 use background::background_plugin;
 use camera::camera_plugin;
+use components::UpdateSet;
 use player::player_plugin;
 use tv::tv_plugin;
 
 fn main() {
     App::new()
+        .configure_sets(Update, UpdateSet::canon_order().chain())
         .add_plugins(DefaultPlugins.set(AssetPlugin {
             // Wasm builds will check for meta files (that don't exist) if this isn't set.
             // This causes errors and even panics in web builds on itch.
