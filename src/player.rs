@@ -5,6 +5,8 @@ use bevy::prelude::*;
 use bevy::sprite::Anchor;
 use std::fmt::Write;
 
+const TICKS_PER_TRANSITION: u8 = 15;
+
 #[derive(Debug, Clone)]
 pub enum SceneState {
     Active(SceneId),
@@ -21,7 +23,10 @@ pub struct UnloadScene(pub SceneId);
 pub struct SceneItem(pub SceneId);
 
 #[derive(Component)]
-pub struct Background;
+pub struct Background0;
+
+#[derive(Component)]
+pub struct Background1;
 
 #[derive(Resource)]
 pub struct Player {
@@ -44,8 +49,6 @@ fn scene_transition_system(
     mut load_scene: EventWriter<LoadScene>,
     mut unload_scene: EventWriter<UnloadScene>,
 ) {
-    const TICKS_PER_TRANSITION: u8 = 15;
-
     match &mut player.scene {
         SceneState::Transitioning(prev, next, tick) => {
             *tick += 1;
@@ -85,13 +88,26 @@ fn keyboard_input_system(keyboard: Keyboard, mut player: ResMut<Player>) {
 
 fn render_bg_system(
     player: Res<Player>,
-    mut bg: Query<&mut Handle<Image>, With<Background>>,
+    mut bg0: Query<(&mut Handle<Image>, &mut Sprite), (With<Background0>, Without<Background1>)>,
+    mut bg1: Query<(&mut Handle<Image>, &mut Sprite), (With<Background1>, Without<Background0>)>,
     asset_server: Res<AssetServer>,
 ) {
-    let mut bg = bg.get_single_mut().unwrap();
+    let mut bg0 = bg0.get_single_mut().unwrap();
+    let mut bg1 = bg1.get_single_mut().unwrap();
     match player.scene {
-        SceneState::Active(id) => *bg = asset_server.load(id.asset_path()),
-        SceneState::Transitioning(_prev, _next, _tick) => (), //TODO: do some mixing
+        SceneState::Active(id) => {
+            *bg0.0 = asset_server.load(id.asset_path());
+            bg0.1.color.set_alpha(1.0);
+            bg1.1.color.set_alpha(0.0);
+        }
+        SceneState::Transitioning(prev, next, tick) => {
+            let next_alpha = tick as f32 / TICKS_PER_TRANSITION as f32;
+            let prev_alpha = 1.0 - next_alpha;
+            *bg0.0 = asset_server.load(prev.asset_path());
+            bg0.1.color.set_alpha(prev_alpha);
+            *bg1.0 = asset_server.load(next.asset_path());
+            bg1.1.color.set_alpha(next_alpha);
+        }
     }
 }
 
@@ -127,10 +143,25 @@ fn debug_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn setup(mut commands: Commands, mut load_scene: EventWriter<LoadScene>) {
     commands.spawn((
         SpriteBundle {
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, RenderLayer::Background.z())),
+            transform: Transform::from_translation(Vec3::new(
+                0.0,
+                0.0,
+                RenderLayer::Background.z(),
+            )),
             ..default()
         },
-        Background,
+        Background0,
+    ));
+    commands.spawn((
+        SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(
+                0.0,
+                0.0,
+                RenderLayer::Background.z(),
+            )),
+            ..default()
+        },
+        Background1,
     ));
     load_scene.send(LoadScene(SceneId::Desk));
 }
