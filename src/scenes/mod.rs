@@ -10,6 +10,7 @@ mod lamp;
 mod lock_drawer;
 mod lock_drawer_solved;
 mod radio;
+mod phone;
 mod tv;
 
 pub fn plugin(app: &mut App) {
@@ -24,5 +25,6 @@ pub fn plugin(app: &mut App) {
         tv::plugin,
         desk::plugin,
         radio::plugin,
+        phone::plugin
     ));
 }

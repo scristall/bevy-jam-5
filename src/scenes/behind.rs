@@ -36,9 +36,9 @@ fn load_scene(
         if load_scene.0 == SceneId::Behind {
             commands.spawn((
                 ClickableShape::Rectangle(Rectangle::from_pos_width_height(
-                    Vec2::new(0.0, 0.0),
-                    50.0,
-                    50.0,
+                    Vec2::new(-537.0, -37.0),
+                    300.0,
+                    600.0,
                 )),
                 RestartUniverseButton,
                 SceneItem(SceneId::Behind),
@@ -125,7 +125,7 @@ fn update_universe_button(
         if button.contains(mouse_pos.0) {
             // TODO: Wire up other reset logic here
             *player = Player::new();
-            player.scene = SceneState::Transitioning(SceneId::Behind, SceneId::Desk, 0);
+            player.scene = SceneState::ForceTransition(SceneId::Behind, SceneId::Desk);
             reset_universe.send(ResetUniverse);
         }
     }

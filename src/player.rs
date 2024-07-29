@@ -33,6 +33,7 @@ pub struct Background0;
 #[derive(Component)]
 pub struct Background1;
 
+#[derive(Copy, Clone)]
 pub enum LightbulbColor {
     Green,
     Red,
@@ -44,6 +45,7 @@ pub struct Player {
     pub behind_puzzle_state: [usize; 6],
     pub keypad_drawer_puzzle_state: [usize; 3],
     pub lightbulb_unlock: Option<LightbulbColor>,
+    pub installed_lightbulb: Option<LightbulbColor>,
     pub right_speaker_broken: bool,
     pub has_surge_protector: bool,
     pub has_installed_surge_protector: bool,
@@ -51,6 +53,7 @@ pub struct Player {
     pub has_installed_morse_code_translator: bool,
     pub has_key: bool,
     pub opened_key_drawer: bool,
+    pub dialed_numbers: Vec<usize>,
 }
 
 impl Player {
@@ -60,6 +63,7 @@ impl Player {
             behind_puzzle_state: [0; 6],
             keypad_drawer_puzzle_state: [0; 3],
             lightbulb_unlock: None,
+            installed_lightbulb: None,
             right_speaker_broken: false,
             has_surge_protector: false,
             has_installed_surge_protector: false,
@@ -67,6 +71,7 @@ impl Player {
             has_installed_morse_code_translator: false,
             has_key: false,
             opened_key_drawer: false,
+            dialed_numbers: vec![],
         }
     }
 }
