@@ -8,6 +8,7 @@ use bevy::{
 };
 
 use crate::{
+    components::{self, ClickableLabel, ClickableShape},
     gamedata::SceneId,
     player::{LoadScene, SceneItem},
     tv::TvScreenMaterial,
@@ -43,29 +44,34 @@ fn load_scene(
     asset_server: Res<AssetServer>,
 ) {
     for load_scene in load_scene.read() {
-        if load_scene.0 == SceneId::Desk {
-            if let Ok(TvScreenMaterial(tv_screen)) = tv_screen.get_single() {
-                let mesh = skewed_rectangle_builder(Rectangle::new(262.0, 240.0));
+        if load_scene.0 != SceneId::Desk {
+            continue;
+        }
+        if let Ok(TvScreenMaterial(tv_screen)) = tv_screen.get_single() {
+            let mesh = skewed_rectangle_builder(Rectangle::new(262.0, 240.0));
 
-                commands.spawn((
-                    MaterialMesh2dBundle {
-                        mesh: Mesh2dHandle(meshes.add(mesh)),
-                        material: tv_screen.clone(),
-                        transform: Transform::from_xyz(420.0, 0.0, 2.0),
-                        ..default()
-                    },
-                    SceneItem(SceneId::Desk),
-                ));
-            }
             commands.spawn((
-                SpriteBundle {
-                    texture: asset_server.load("images/scenes/desk_top_layer.png"),
-                    transform: Transform::from_xyz(0.0, 0.0, 4.0),
-                    ..Default::default()
+                MaterialMesh2dBundle {
+                    mesh: Mesh2dHandle(meshes.add(mesh)),
+                    material: tv_screen.clone(),
+                    transform: Transform::from_xyz(420.0, 0.0, 2.0),
+                    ..default()
                 },
                 SceneItem(SceneId::Desk),
+                ClickableShape::from(components::Rectangle {
+                    top_left: Vec2::new(335.0, 240.0),
+                    bottom_right: Vec2::new(925.0, -200.0),
+                }),
+                ClickableLabel("TV"),
             ));
         }
+        commands.spawn((
+            SpriteBundle {
+                texture: asset_server.load("images/scenes/desk_top_layer.png"),
+                transform: Transform::from_xyz(0.0, 0.0, 4.0),
+                ..Default::default()
+            },
+            SceneItem(SceneId::Desk),
     }
 }
 
