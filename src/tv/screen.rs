@@ -17,28 +17,6 @@ pub struct TvBackground;
 #[derive(Component)]
 pub struct TvScreenMaterial(pub Handle<ColorMaterial>);
 
-fn skewed_rectangle_builder(rect: Rectangle) -> Mesh {
-    let [hw, hh] = [rect.half_size.x, rect.half_size.y];
-    let positions = vec![
-        [hw, hh * 0.75, 0.0],
-        [-hw, hh, 0.0],
-        [-hw, -hh, 0.0],
-        [hw, -hh * 0.75, 0.0],
-    ];
-    let normals = vec![[0.0, 0.0, 1.0]; 4];
-    let uvs = vec![[1.0, 0.0], [0.0, 0.0], [0.0, 1.0], [1.0, 1.0]];
-    let indices = Indices::U32(vec![0, 1, 2, 0, 2, 3]);
-
-    Mesh::new(
-        PrimitiveTopology::TriangleList,
-        RenderAssetUsages::default(),
-    )
-    .with_inserted_indices(indices)
-    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
-    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
-    .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
-}
-
 pub fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -82,7 +60,7 @@ pub fn setup(
     commands.spawn((
         camera,
         first_pass_layer.clone(),
-        crate::mask::MaskSettings { ..default() },
+        //crate::mask::MaskSettings { ..default() },
     ));
 
     let material_handle = materials.add(ColorMaterial {

@@ -90,6 +90,7 @@ fn update(
     audio: Res<Audio>,
     keyboard: Res<ButtonInput<KeyCode>>,
 ) {
+    return;
     if let Ok(mut controlled) = controlled.get_single_mut() {
         if keyboard.pressed(KeyCode::KeyA) {
             controlled.0.translation.x -= 1.0;
