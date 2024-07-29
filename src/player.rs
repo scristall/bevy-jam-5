@@ -58,16 +58,11 @@ impl Player {
 #[derive(Component)]
 struct DebugSceneText;
 
-fn scene_transition_system(
-    mut player: ResMut<Player>,
-    mut load_scene: EventWriter<LoadScene>,
-    mut unload_scene: EventWriter<UnloadScene>,
-) {
+fn scene_transition_system(mut player: ResMut<Player>, mut load_scene: EventWriter<LoadScene>) {
     match &mut player.scene {
         SceneState::Transitioning(prev, next, tick) => {
             *tick += 1;
             if *tick == TICKS_PER_TRANSITION {
-                unload_scene.send(UnloadScene(*prev));
                 load_scene.send(LoadScene(*next));
                 player.scene = SceneState::Active(*next);
             }
@@ -76,7 +71,11 @@ fn scene_transition_system(
     }
 }
 
-fn keyboard_input_system(keyboard: Keyboard, mut player: ResMut<Player>) {
+fn keyboard_input_system(
+    keyboard: Keyboard,
+    mut player: ResMut<Player>,
+    mut unload_scene: EventWriter<UnloadScene>,
+) {
     const SCENE_TRANSITION_CONTROLS: [ScenePlayerControl; 3] = [
         ScenePlayerControl::TransitionSceneLeft,
         ScenePlayerControl::TransitionSceneRight,
@@ -93,6 +92,7 @@ fn keyboard_input_system(keyboard: Keyboard, mut player: ResMut<Player>) {
                 let next = scene.next_scene(control);
                 if let Some(next) = next {
                     player.scene = SceneState::Transitioning(scene, next, 0);
+                    unload_scene.send(UnloadScene(scene));
                     return;
                 }
             }
