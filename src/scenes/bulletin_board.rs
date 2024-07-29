@@ -25,6 +25,7 @@ fn load_scene(
                 commands.spawn((
                     SpriteBundle {
                         texture: asset_server.load("images/scenes/key.png"),
+                        transform: Transform::from_xyz(0.0, 0.0, 3.0),
                         ..Default::default()
                     },
                     ClickableShape::Rectangle(Rectangle::from_pos_width_height(
