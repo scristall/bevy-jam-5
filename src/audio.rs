@@ -1,8 +1,12 @@
-use crate::{components::UpdateSet, player::Player};
+use crate::{
+    components::UpdateSet,
+    player::{Player, ResetUniverse},
+    right_speaker::RightSpeakerDestroyed,
+};
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 
-use crate::gamedata::AmRadioFreq;
+use crate::gamedata::{AmRadioFreq, PresetAmRadioFreq};
 
 // Outer bandwidth defines when the channel starts to be heard
 // Inner bandwidth defines when the channel is at max volume
@@ -12,9 +16,12 @@ const STATION_INNER_BANDWIDTH_DELTA: i32 = 10;
 #[derive(Component)]
 pub struct RadioStation {
     handle: Handle<AudioInstance>,
-    frequency: i32, // in kHz
+    frequency: AmRadioFreq,
     playing: bool,
 }
+
+#[derive(Component)]
+pub struct RadioAudio;
 
 #[derive(Resource)]
 #[allow(dead_code)]
@@ -22,7 +29,7 @@ pub struct WhiteNoise(Handle<AudioInstance>);
 
 impl RadioStation {
     fn freq_in_band(&self, freq: i32) -> bool {
-        (freq - self.frequency).abs() <= STATION_OUTER_BANDWIDTH_DELTA
+        (freq - self.frequency.0).abs() <= STATION_OUTER_BANDWIDTH_DELTA
     }
 
     fn freq_to_volume(&self, freq: i32) -> f64 {
@@ -30,7 +37,7 @@ impl RadioStation {
             return 0.0;
         }
 
-        let delta = (freq - self.frequency).abs();
+        let delta = (freq - self.frequency.0).abs();
         if delta <= STATION_INNER_BANDWIDTH_DELTA {
             return 1.0;
         }
@@ -43,8 +50,48 @@ impl RadioStation {
     }
 }
 
+fn on_right_speaker_destroyed(
+    audio: Res<Audio>,
+    asset_server: Res<AssetServer>,
+    radio_stations: Query<&RadioStation>,
+    whitenoise: Res<WhiteNoise>,
+    mut audio_instances: ResMut<Assets<AudioInstance>>,
+    mut right_speaker_destroyed: EventReader<RightSpeakerDestroyed>,
+) {
+    for _ in right_speaker_destroyed.read() {
+        audio.play(asset_server.load("audio/explosion.ogg"));
+
+        for radio_station in radio_stations.iter() {
+            if let Some(instance) = audio_instances.get_mut(&radio_station.handle) {
+                instance.set_panning(0.0, AudioTween::default());
+            }
+        }
+        if let Some(instance) = audio_instances.get_mut(&whitenoise.0) {
+            instance.set_panning(0.0, AudioTween::default());
+        }
+    }
+}
+
+fn on_reset_universe(
+    radio_stations: Query<&RadioStation>,
+    whitenoise: Res<WhiteNoise>,
+    mut audio_instances: ResMut<Assets<AudioInstance>>,
+    mut reset_universe: EventReader<ResetUniverse>,
+) {
+    for _ in reset_universe.read() {
+        for radio_station in radio_stations.iter() {
+            if let Some(instance) = audio_instances.get_mut(&radio_station.handle) {
+                instance.set_panning(0.5, AudioTween::default());
+            }
+        }
+        if let Some(instance) = audio_instances.get_mut(&whitenoise.0) {
+            instance.set_panning(0.5, AudioTween::default());
+        }
+    }
+}
+
 fn update(
-    radio_freqs: Query<&AmRadioFreq, Changed<AmRadioFreq>>,
+    radio_freqs: Query<&AmRadioFreq, (Changed<AmRadioFreq>, With<RadioAudio>)>,
     whitenoise: Res<WhiteNoise>,
     mut radio_stations: Query<&mut RadioStation>,
     mut audio_instances: ResMut<Assets<AudioInstance>>,
@@ -95,6 +142,8 @@ fn update(
 }
 
 fn setup(mut commands: Commands, audio: Res<Audio>, asset_server: Res<AssetServer>) {
+    commands.spawn((AmRadioFreq(600), RadioAudio));
+
     commands.insert_resource(WhiteNoise(
         audio
             .play(asset_server.load("audio/whitenoise.ogg"))
@@ -103,11 +152,20 @@ fn setup(mut commands: Commands, audio: Res<Audio>, asset_server: Res<AssetServe
     ));
     commands.spawn(RadioStation {
         handle: audio
+            .play(asset_server.load("audio/morse-code.ogg"))
+            .looped()
+            .paused()
+            .handle(),
+        frequency: PresetAmRadioFreq::Morse.into(),
+        playing: false,
+    });
+    commands.spawn(RadioStation {
+        handle: audio
             .play(asset_server.load("audio/number-station.ogg"))
             .looped()
             .paused()
             .handle(),
-        frequency: 700,
+        frequency: PresetAmRadioFreq::Numbers.into(),
         playing: false,
     });
     commands.spawn(RadioStation {
@@ -116,7 +174,7 @@ fn setup(mut commands: Commands, audio: Res<Audio>, asset_server: Res<AssetServe
             .looped()
             .paused()
             .handle(),
-        frequency: 750,
+        frequency: PresetAmRadioFreq::Music.into(),
         playing: false,
     });
     commands.spawn(RadioStation {
@@ -125,7 +183,7 @@ fn setup(mut commands: Commands, audio: Res<Audio>, asset_server: Res<AssetServe
             .looped()
             .paused()
             .handle(),
-        frequency: 610,
+        frequency: PresetAmRadioFreq::News.into(),
         playing: false,
     });
 }
@@ -133,5 +191,8 @@ fn setup(mut commands: Commands, audio: Res<Audio>, asset_server: Res<AssetServe
 pub fn plugin(app: &mut App) {
     app.add_plugins(AudioPlugin);
     app.add_systems(Startup, setup);
-    app.add_systems(Update, (update).in_set(UpdateSet::Scene));
+    app.add_systems(
+        Update,
+        (update, on_right_speaker_destroyed, on_reset_universe).in_set(UpdateSet::Scene),
+    );
 }

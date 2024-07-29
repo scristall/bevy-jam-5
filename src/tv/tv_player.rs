@@ -1,7 +1,10 @@
 use bevy::{prelude::*, render::view::RenderLayers};
 use bevy_kira_audio::prelude::*;
 
-use crate::player::{LightbulbColor, Player};
+use crate::{
+    gamedata::SceneId,
+    player::{LightbulbColor, Player, SceneState},
+};
 
 use super::{
     screen::TvBackground, tv_monster::TvMonster, whirlpool::Whirlpool, TvComponent, TvStart,
@@ -76,6 +79,7 @@ fn setup(
             },
             TvPlayer,
             TvComponent,
+            TvControlled { puzzle_pos: 0 },
             RenderLayers::layer(1),
         ));
     }
@@ -88,23 +92,27 @@ fn update(
     uncontrolled: Query<Entity, (Or<(With<TvPlayer>, With<TvMonster>)>, Without<TvControlled>)>,
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
+    player: Res<Player>,
     keyboard: Res<ButtonInput<KeyCode>>,
 ) {
-    return;
+    if !matches!(player.scene, SceneState::Active(SceneId::Tv)) {
+        return;
+    }
+
     if let Ok(mut controlled) = controlled.get_single_mut() {
-        if keyboard.pressed(KeyCode::KeyA) {
+        if keyboard.pressed(KeyCode::ArrowLeft) {
             controlled.0.translation.x -= 1.0;
         }
 
-        if keyboard.pressed(KeyCode::KeyD) {
+        if keyboard.pressed(KeyCode::ArrowRight) {
             controlled.0.translation.x += 1.0;
         }
 
-        if keyboard.pressed(KeyCode::KeyS) {
+        if keyboard.pressed(KeyCode::ArrowDown) {
             controlled.0.translation.y -= 1.0;
         }
 
-        if keyboard.pressed(KeyCode::KeyW) {
+        if keyboard.pressed(KeyCode::ArrowUp) {
             controlled.0.translation.y += 1.0;
         }
 

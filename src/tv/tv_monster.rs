@@ -26,7 +26,6 @@ fn setup(
                 ..Default::default()
             },
             RenderLayers::layer(1),
-            TvControlled { puzzle_pos: 0 },
             TvComponent,
             TvMonster,
         ));

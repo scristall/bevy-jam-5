@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 
+use crate::{gamedata::SceneId, player::SceneItem};
+
 #[derive(Component)]
 struct Smoke {
     trajectory: Vec3,
@@ -9,15 +11,20 @@ struct Smoke {
 }
 
 #[derive(Component)]
-struct SmokeSpawner {
+pub struct SmokeSpawner {
     timer: Timer,
 }
 
-fn smoke_setup(mut commands: Commands) {
-    commands.spawn(SmokeSpawner {
-        timer: Timer::new(Duration::from_millis(130), TimerMode::Repeating),
-    });
+impl SmokeSpawner {
+    pub fn new() -> Self {
+        SmokeSpawner {
+            timer: Timer::new(Duration::from_millis(130), TimerMode::Repeating),
+        }
+    }
 }
+
+#[derive(Event)]
+pub struct RightSpeakerDestroyed;
 
 fn spawn_smoke(
     mut commands: Commands,
@@ -41,6 +48,7 @@ fn spawn_smoke(
                     trajectory: Vec3::new(x, y, 0.0),
                     timer: Timer::new(Duration::from_millis(2000), TimerMode::Once),
                 },
+                SceneItem(SceneId::Desk),
             ));
         }
     }
@@ -64,7 +72,7 @@ fn update_smoke(
 }
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(Startup, smoke_setup);
+    app.add_event::<RightSpeakerDestroyed>();
     app.add_systems(Update, spawn_smoke);
     app.add_systems(Update, update_smoke);
 }

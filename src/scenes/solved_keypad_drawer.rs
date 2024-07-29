@@ -4,7 +4,7 @@ use crate::{
     components::{ClickableArea, ClickableShape, Rectangle},
     gamedata::SceneId,
     input::MousePosition,
-    player::{LoadScene, Player, SceneItem, SceneState},
+    player::{LoadScene, Player, SceneItem},
 };
 
 const PUZZLE_BUTTON_X_POSITIONS: [f32; 3] = [215.0, 294.0, 376.0];
@@ -114,7 +114,7 @@ fn update(
     }
 
     if is_keypad_drawer_solved(&player) {
-        return;
+      return;
     }
 
     for mut puzzle_segment in puzzle_segments.iter_mut() {
@@ -148,11 +148,6 @@ fn update(
                 player.keypad_drawer_puzzle_state[puzzle_segment.0.word_pos] = sequence;
             }
         }
-    }
-
-    if is_keypad_drawer_solved(&player) {
-        player.scene =
-            SceneState::ForceTransition(SceneId::KeypadDrawer, SceneId::KeypadDrawerSolved);
     }
 }
 

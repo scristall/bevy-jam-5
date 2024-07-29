@@ -7,11 +7,11 @@ use crate::{
     player::{LoadScene, Player, ResetUniverse, SceneItem, SceneState},
 };
 
-const PUZZLE_BUTTON_X_POSITIONS: [f32; 6] = [-340.0, -225.0, -87.0, 50.0, 174.0, 300.0];
+const PUZZLE_BUTTON_X_POSITIONS: [f32; 6] = [-105.0, -66.0, -24.0, 20.0, 59.0, 100.0];
 
-const PUZZLE_BUTTON_Y_POSITION: f32 = -239.0;
-const PUZZLE_BUTTON_WIDTH: f32 = 100.0;
-const PUZZLE_BUTTON_HEIGHT: f32 = 100.0;
+const PUZZLE_BUTTON_Y_POSITION: f32 = -209.0;
+const PUZZLE_BUTTON_WIDTH: f32 = 45.0;
+const PUZZLE_BUTTON_HEIGHT: f32 = 45.0;
 
 const NUM_PUZZLE_CHARACTERS: usize = 12;
 const PUZZLE_CHARACTERS: [&'static str; NUM_PUZZLE_CHARACTERS] =
@@ -46,8 +46,8 @@ fn load_scene(
 
             let style = TextStyle {
                 font: asset_server.load("fonts/FiraMono-Regular.ttf"),
-                font_size: 100.0,
-                color: Color::BLACK,
+                font_size: 60.0,
+                color: Color::linear_rgb(0.2, 0.9, 0.4),
                 ..default()
             };
 

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+
 use crate::{
     components::{ClickableArea, ClickableLabel, ClickableShape, Rectangle},
     gamedata::SceneId,
@@ -8,20 +9,20 @@ use crate::{
 };
 
 #[derive(Component)]
-struct Key;
+struct MorseCodeTranslator;
 
 fn load_scene(mut commands: Commands, mut load_scene: EventReader<LoadScene>) {
     for load_scene in load_scene.read() {
-        if load_scene.0 == SceneId::LockDrawer {
+        if load_scene.0 == SceneId::LockDrawerSolved {
             commands.spawn((
                 ClickableShape::Rectangle(Rectangle::from_pos_width_height(
-                    Vec2::new(570.0, 357.0),
-                    150.0,
-                    150.0,
+                    Vec2::new(-100.0, 100.0),
+                    800.0,
+                    400.0,
                 )),
-                ClickableLabel("Lock"),
-                Key,
-                SceneItem(SceneId::LockDrawer),
+                MorseCodeTranslator,
+                ClickableLabel("Radio Module"),
+                SceneItem(SceneId::LockDrawerSolved),
             ));
         }
     }
@@ -31,18 +32,18 @@ fn update(
     mut player: ResMut<Player>,
     mouse_pos: Res<MousePosition>,
     mouse_button: Res<ButtonInput<MouseButton>>,
-    key: Query<(Entity, &ClickableShape), With<Key>>,
+    clickables: Query<&ClickableShape, With<MorseCodeTranslator>>,
 ) {
     if !mouse_button.just_pressed(MouseButton::Left) {
         return;
     }
 
-    for key in key.iter() {
-        if key.1.contains(mouse_pos.0) {
-            player.opened_key_drawer = true;
+    for clickable in clickables.iter() {
+        if clickable.contains(mouse_pos.0) {
+            player.has_morse_code_translator = true;
             player.scene = SceneState::ForceTransition(
-                SceneId::LockDrawer,
                 SceneId::LockDrawerSolved,
+                SceneId::LockDrawerEmpty,
             );
         }
     }

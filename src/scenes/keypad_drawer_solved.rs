@@ -8,20 +8,20 @@ use crate::{
 };
 
 #[derive(Component)]
-struct Key;
+struct SurgeProtector;
 
 fn load_scene(mut commands: Commands, mut load_scene: EventReader<LoadScene>) {
     for load_scene in load_scene.read() {
-        if load_scene.0 == SceneId::LockDrawer {
+        if load_scene.0 == SceneId::KeypadDrawerSolved {
             commands.spawn((
                 ClickableShape::Rectangle(Rectangle::from_pos_width_height(
-                    Vec2::new(570.0, 357.0),
-                    150.0,
-                    150.0,
+                    Vec2::new(-121.0, 305.0),
+                    300.0,
+                    300.0,
                 )),
-                ClickableLabel("Lock"),
-                Key,
-                SceneItem(SceneId::LockDrawer),
+                SurgeProtector,
+                ClickableLabel("Surge Protector"),
+                SceneItem(SceneId::KeypadDrawerSolved),
             ));
         }
     }
@@ -31,18 +31,18 @@ fn update(
     mut player: ResMut<Player>,
     mouse_pos: Res<MousePosition>,
     mouse_button: Res<ButtonInput<MouseButton>>,
-    key: Query<(Entity, &ClickableShape), With<Key>>,
+    clickables: Query<&ClickableShape, With<SurgeProtector>>,
 ) {
     if !mouse_button.just_pressed(MouseButton::Left) {
         return;
     }
 
-    for key in key.iter() {
-        if key.1.contains(mouse_pos.0) {
-            player.opened_key_drawer = true;
+    for clickable in clickables.iter() {
+        if clickable.contains(mouse_pos.0) {
+            player.has_surge_protector = true;
             player.scene = SceneState::ForceTransition(
-                SceneId::LockDrawer,
-                SceneId::LockDrawerSolved,
+                SceneId::KeypadDrawerSolved,
+                SceneId::KeypadDrawerEmpty,
             );
         }
     }

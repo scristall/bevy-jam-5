@@ -3,6 +3,7 @@ use bevy::prelude::*;
 #[derive(Debug, Clone, Copy)]
 pub enum RenderLayer {
     Background,
+    HighlightText,
     DebugText,
 }
 
@@ -11,6 +12,7 @@ impl RenderLayer {
         use RenderLayer::*;
         match self {
             Background => 0.0,
+            HighlightText => 5.0,
             DebugText => 10.0,
         }
     }
@@ -21,6 +23,21 @@ pub fn debug_text_style(asset_server: &Res<AssetServer>) -> TextStyle {
         font: asset_server.load("fonts/FiraMono-Regular.ttf"),
         font_size: 20.0,
         color: Color::linear_rgb(1.0, 0.0, 0.0),
+        ..default()
+    }
+}
+
+pub fn highlight_text_style(asset_server: &Res<AssetServer>) -> TextStyle {
+    TextStyle {
+        font: asset_server.load("fonts/FiraMono-Regular.ttf"),
+        font_size: 100.0,
+        color: LinearRgba {
+            red: 0.0,
+            blue: 1.0,
+            green: 1.0,
+            alpha: 1.0,
+        }
+        .into(),
         ..default()
     }
 }
@@ -56,10 +73,15 @@ pub enum SceneId {
     Tv,
     Lamp,
     KeypadDrawer,
+    KeypadDrawerSolved,
+    KeypadDrawerEmpty,
     LockDrawer,
+    LockDrawerSolved,
+    LockDrawerEmpty,
     BulletinBoard,
     Door,
     Behind,
+    Phone,
 }
 
 impl SceneId {
@@ -90,7 +112,8 @@ impl SceneId {
             _ => return None,
         }
         let scene = match self {
-            Radio | Tv | Lamp | KeypadDrawer | LockDrawer => Desk,
+            Radio | Tv | Lamp | KeypadDrawer | KeypadDrawerSolved | KeypadDrawerEmpty
+            | LockDrawer | LockDrawerEmpty | LockDrawerSolved | Phone => Desk,
             _ => return None,
         };
         Some(scene)
@@ -104,10 +127,15 @@ impl SceneId {
             Tv => scene_path!("tv.png"),
             Lamp => scene_path!("lamp.png"),
             KeypadDrawer => scene_path!("locked_drawer_1.png"),
+            KeypadDrawerSolved => scene_path!("inside_drawer_1.png"),
+            KeypadDrawerEmpty => scene_path!("inside_drawer_1_empty.png"),
             LockDrawer => scene_path!("locked_drawer_2.png"),
+            LockDrawerSolved => scene_path!("inside_drawer_2.png"),
+            LockDrawerEmpty => scene_path!("inside_drawer_2_empty.png"),
             BulletinBoard => scene_path!("bulletin_board.png"),
             Door => scene_path!("door.png"),
             Behind => scene_path!("restart_universe_button.png"),
+            Phone => scene_path!("phone.png"),
         }
     }
 }
@@ -132,7 +160,7 @@ pub enum PresetAmRadioFreq {
 }
 
 impl PresetAmRadioFreq {
-    const fn value(self) -> i32 {
+    pub const fn value(self) -> i32 {
         match self {
             Self::Morse => 650,
             Self::Music => 750,

@@ -1,6 +1,7 @@
 use crate::camera::{HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION};
-use crate::components::{Keyboard, UpdateSet};
+use crate::components::{ClickableArea, ClickableScene, ClickableShape, Keyboard, UpdateSet};
 use crate::gamedata::{debug_text_style, RenderLayer, SceneId, ScenePlayerControl};
+use crate::input::MousePosition;
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 use std::fmt::Write;
@@ -11,6 +12,7 @@ const TICKS_PER_TRANSITION: u8 = 15;
 pub enum SceneState {
     Active(SceneId),
     Transitioning(SceneId, SceneId, u8),
+    ForceTransition(SceneId, SceneId),
 }
 
 #[derive(Event)]
@@ -42,7 +44,13 @@ pub struct Player {
     pub behind_puzzle_state: [usize; 6],
     pub keypad_drawer_puzzle_state: [usize; 3],
     pub lightbulb_unlock: Option<LightbulbColor>,
-    pub right_speaker_broken: bool
+    pub right_speaker_broken: bool,
+    pub has_surge_protector: bool,
+    pub has_installed_surge_protector: bool,
+    pub has_morse_code_translator: bool,
+    pub has_installed_morse_code_translator: bool,
+    pub has_key: bool,
+    pub opened_key_drawer: bool,
 }
 
 impl Player {
@@ -53,6 +61,12 @@ impl Player {
             keypad_drawer_puzzle_state: [0; 3],
             lightbulb_unlock: None,
             right_speaker_broken: false,
+            has_surge_protector: false,
+            has_installed_surge_protector: false,
+            has_morse_code_translator: false,
+            has_installed_morse_code_translator: false,
+            has_key: false,
+            opened_key_drawer: false,
         }
     }
 }
@@ -60,8 +74,17 @@ impl Player {
 #[derive(Component)]
 struct DebugSceneText;
 
-fn scene_transition_system(mut player: ResMut<Player>, mut load_scene: EventWriter<LoadScene>) {
+fn scene_transition_system(
+    mut player: ResMut<Player>,
+    mut load_scene: EventWriter<LoadScene>,
+    mut unload_scene: EventWriter<UnloadScene>,
+) {
     match &mut player.scene {
+        SceneState::ForceTransition(prev, next) => {
+            let prev = *prev;
+            player.scene = SceneState::Transitioning(prev, *next, 0);
+            unload_scene.send(UnloadScene(prev));
+        }
         SceneState::Transitioning(prev, next, tick) => {
             *tick += 1;
             if *tick == TICKS_PER_TRANSITION {
@@ -102,6 +125,25 @@ fn keyboard_input_system(
     }
 }
 
+fn check_clickable_scenes(
+    mut player: ResMut<Player>,
+    mouse_pos: Res<MousePosition>,
+    mouse_button: Res<ButtonInput<MouseButton>>,
+    clickables: Query<(&ClickableShape, &ClickableScene)>,
+    mut unload_scene: EventWriter<UnloadScene>,
+) {
+    if !mouse_button.just_pressed(MouseButton::Left) {
+        return;
+    }
+
+    for clickables in clickables.iter() {
+        if clickables.0.contains(mouse_pos.0) {
+            player.scene = SceneState::Transitioning(clickables.1.from, clickables.1.to, 0);
+            unload_scene.send(UnloadScene(clickables.1.from));
+        }
+    }
+}
+
 fn render_bg_system(
     player: Res<Player>,
     mut bg0: Query<(&mut Handle<Image>, &mut Sprite), (With<Background0>, Without<Background1>)>,
@@ -111,7 +153,7 @@ fn render_bg_system(
     let mut bg0 = bg0.get_single_mut().unwrap();
     let mut bg1 = bg1.get_single_mut().unwrap();
     match player.scene {
-        SceneState::Active(id) => {
+        SceneState::ForceTransition(id, _) | SceneState::Active(id) => {
             *bg0.0 = asset_server.load(id.asset_path());
             bg0.1.color.set_alpha(1.0);
             bg1.1.color.set_alpha(0.0);
@@ -212,10 +254,11 @@ pub fn plugin(app: &mut App) {
     app.add_systems(
         Update,
         (
-            scene_transition_system,
             keyboard_input_system,
+            scene_transition_system,
             render_bg_system,
             unload_scene_items,
+            check_clickable_scenes,
         )
             .chain()
             .in_set(UpdateSet::PreScene),
