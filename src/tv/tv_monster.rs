@@ -1,6 +1,10 @@
 use bevy::{prelude::*, render::view::RenderLayers};
 
-use super::{tv_ending::TvPlayerKilled, tv_player::{TvControlled, TvPlayer}};
+use super::{
+    tv_ending::TvPlayerKilled,
+    tv_player::{TvControlled, TvPlayer},
+    TvComponent, TvStart,
+};
 
 #[derive(Component)]
 pub struct TvMonster;
@@ -8,19 +12,25 @@ pub struct TvMonster;
 const MONSTER_SPEED: f32 = 0.01;
 const KILL_DISTANCE: f32 = 20.0;
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn((
-        SpriteBundle {
-            texture: asset_server.load("images/tv/monster.png"),
-            transform: Transform::from_xyz(0.0, 0.0, 2.0),
-            ..Default::default()
-        },
-        RenderLayers::layer(1),
-        TvControlled {
-            puzzle_pos: 0,
-        },
-        TvMonster,
-    ));
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut tv_start: EventReader<TvStart>,
+) {
+    for _ in tv_start.read() {
+        eprintln!("here");
+        commands.spawn((
+            SpriteBundle {
+                texture: asset_server.load("images/tv/monster.png"),
+                transform: Transform::from_xyz(0.0, 0.0, 2.0),
+                ..Default::default()
+            },
+            RenderLayers::layer(1),
+            TvControlled { puzzle_pos: 0 },
+            TvComponent,
+            TvMonster,
+        ));
+    }
 }
 
 fn update(
@@ -41,6 +51,6 @@ fn update(
 }
 
 pub fn tv_monster_plugin(app: &mut App) {
-    app.add_systems(Startup, setup);
+    app.add_systems(Update, setup);
     app.add_systems(Update, update);
 }

@@ -1,7 +1,7 @@
 use bevy::{prelude::*, render::view::RenderLayers};
 use bevy_kira_audio::prelude::*;
 
-use super::{tv_monster::TvMonster, tv_player::TvPlayer};
+use super::{tv_monster::TvMonster, tv_player::TvPlayer, TvComponent};
 
 #[derive(Event)]
 pub struct TvPlayerKilled;
@@ -26,6 +26,7 @@ fn update(
                     ..Default::default()
                 },
                 RenderLayers::layer(1),
+                TvComponent,
             ));
         }
     }

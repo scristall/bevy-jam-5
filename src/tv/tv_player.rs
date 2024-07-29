@@ -1,7 +1,11 @@
 use bevy::{prelude::*, render::view::RenderLayers};
 use bevy_kira_audio::prelude::*;
 
-use super::{screen::TvBackground, tv_monster::TvMonster, whirlpool::Whirlpool};
+use crate::player::{LightbulbColor, Player};
+
+use super::{
+    screen::TvBackground, tv_monster::TvMonster, whirlpool::Whirlpool, TvComponent, TvStart,
+};
 
 #[derive(Component)]
 pub struct TvPlayer;
@@ -58,16 +62,23 @@ fn check_puzzle(puzzle_pos: u32, dir: Direction) -> u32 {
     }
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn((
-        SpriteBundle {
-            texture: asset_server.load("images/tv/player.png"),
-            transform: Transform::from_xyz(-160.0, 0.0, 2.0),
-            ..Default::default()
-        },
-        TvPlayer,
-        RenderLayers::layer(1),
-    ));
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut tv_start: EventReader<TvStart>,
+) {
+    for _ in tv_start.read() {
+        commands.spawn((
+            SpriteBundle {
+                texture: asset_server.load("images/tv/player.png"),
+                transform: Transform::from_xyz(-160.0, 0.0, 2.0),
+                ..Default::default()
+            },
+            TvPlayer,
+            TvComponent,
+            RenderLayers::layer(1),
+        ));
+    }
 }
 
 fn update(
@@ -126,6 +137,7 @@ fn update(
                             ..Default::default()
                         },
                         Whirlpool { speed: 0.1 },
+                        TvComponent,
                         RenderLayers::layer(1),
                     ));
                     commands.spawn((
@@ -134,6 +146,7 @@ fn update(
                             ..Default::default()
                         },
                         Whirlpool { speed: 0.05 },
+                        TvComponent,
                         RenderLayers::layer(1),
                     ));
                     for tv_background in tv_backgrounds.iter() {
@@ -170,6 +183,7 @@ fn update_tv_falling(mut falling_players: Query<&mut Transform, With<TvFalling>>
 fn update_tv_player_falling(
     mut commands: Commands,
     falling_players: Query<&Transform, (With<TvFalling>, With<TvPlayer>)>,
+    mut player: ResMut<Player>,
     asset_server: Res<AssetServer>,
 ) {
     for falling_player in falling_players.iter() {
@@ -184,8 +198,10 @@ fn update_tv_player_falling(
                     transform: Transform::from_xyz(0.0, 0.0, 3.0),
                     ..Default::default()
                 },
+                TvComponent,
                 RenderLayers::layer(1),
             ));
+            player.lightbulb_unlock = Some(LightbulbColor::Red);
         }
     }
 }
@@ -193,6 +209,7 @@ fn update_tv_player_falling(
 fn update_tv_monster_falling(
     mut commands: Commands,
     falling_players: Query<&Transform, (With<TvFalling>, With<TvMonster>)>,
+    mut player: ResMut<Player>,
     asset_server: Res<AssetServer>,
 ) {
     for falling_player in falling_players.iter() {
@@ -207,14 +224,16 @@ fn update_tv_monster_falling(
                     transform: Transform::from_xyz(0.0, 0.0, 3.0),
                     ..Default::default()
                 },
+                TvComponent,
                 RenderLayers::layer(1),
             ));
+            player.lightbulb_unlock = Some(LightbulbColor::Green);
         }
     }
 }
 
 pub fn tv_player_plugin(app: &mut App) {
-    app.add_systems(Startup, setup);
+    app.add_systems(Update, setup);
     app.add_systems(
         Update,
         (

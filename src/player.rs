@@ -19,6 +19,9 @@ pub struct LoadScene(pub SceneId);
 #[derive(Event)]
 pub struct UnloadScene(pub SceneId);
 
+#[derive(Event)]
+pub struct ResetUniverse;
+
 #[derive(Component)]
 pub struct SceneItem(pub SceneId);
 
@@ -28,15 +31,26 @@ pub struct Background0;
 #[derive(Component)]
 pub struct Background1;
 
+pub enum LightbulbColor {
+    Green,
+    Red,
+}
+
 #[derive(Resource)]
 pub struct Player {
-    scene: SceneState,
+    pub scene: SceneState,
+    pub behind_puzzle_state: [usize; 6],
+    pub keypad_drawer_puzzle_state: [usize; 3],
+    pub lightbulb_unlock: Option<LightbulbColor>,
 }
 
 impl Player {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             scene: SceneState::Active(SceneId::Desk),
+            behind_puzzle_state: [0; 6],
+            keypad_drawer_puzzle_state: [0; 3],
+            lightbulb_unlock: None,
         }
     }
 }
@@ -140,7 +154,11 @@ fn debug_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 }
 
-fn setup(mut commands: Commands, mut load_scene: EventWriter<LoadScene>) {
+fn setup(
+    mut commands: Commands,
+    mut load_scene: EventWriter<LoadScene>,
+    mut reset_universe: EventWriter<ResetUniverse>,
+) {
     commands.spawn((
         SpriteBundle {
             transform: Transform::from_translation(Vec3::new(
@@ -164,6 +182,7 @@ fn setup(mut commands: Commands, mut load_scene: EventWriter<LoadScene>) {
         Background1,
     ));
     load_scene.send(LoadScene(SceneId::Desk));
+    reset_universe.send(ResetUniverse);
 }
 
 fn unload_scene_items(
@@ -185,6 +204,7 @@ fn unload_scene_items(
 pub fn plugin(app: &mut App) {
     app.add_event::<LoadScene>();
     app.add_event::<UnloadScene>();
+    app.add_event::<ResetUniverse>();
     app.insert_resource(Player::new());
     app.add_systems(Startup, setup);
     app.add_systems(
