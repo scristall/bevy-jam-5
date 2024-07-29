@@ -126,12 +126,13 @@ fn debug_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 }
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, mut load_scene: EventWriter<LoadScene>) {
     commands.spawn((
         SpriteBundle::default(),
         Background,
         RenderLayers::layer(RenderLayer::Background as usize),
     ));
+    load_scene.send(LoadScene(SceneId::Desk));
 }
 
 fn unload_scene_items(
