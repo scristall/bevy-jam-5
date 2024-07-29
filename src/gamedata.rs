@@ -1,10 +1,19 @@
 use bevy::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
-#[repr(usize)]
 pub enum RenderLayer {
-    Background = 0,
-    DebugText = 1,
+    Background,
+    DebugText,
+}
+
+impl RenderLayer {
+    pub const fn z(self) -> f32 {
+        use RenderLayer::*;
+        match self {
+            Background => 0.0,
+            DebugText => 10.0,
+        }
+    }
 }
 
 pub fn debug_text_style(asset_server: &Res<AssetServer>) -> TextStyle {

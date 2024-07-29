@@ -2,7 +2,6 @@ use crate::camera::{HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION};
 use crate::components::{Keyboard, UpdateSet};
 use crate::gamedata::{debug_text_style, RenderLayer, SceneId, ScenePlayerControl};
 use bevy::prelude::*;
-use bevy::render::view::RenderLayers;
 use bevy::sprite::Anchor;
 use std::fmt::Write;
 
@@ -115,22 +114,23 @@ fn debug_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             .with_justify(JustifyText::Left),
             text_anchor: Anchor::CenterLeft,
             transform: Transform::from_translation(Vec3::new(
-                -HORIZONTAL_RESOLUTION / 2.0 * 9.0 / 10.0,
+                -HORIZONTAL_RESOLUTION / 2.0,
                 VERTICAL_RESOLUTION / 2.0 * 9.0 / 10.0,
-                10.0,
+                RenderLayer::DebugText.z(),
             )),
             ..default()
         },
         DebugSceneText,
-        RenderLayers::layer(RenderLayer::DebugText as usize),
     ));
 }
 
 fn setup(mut commands: Commands, mut load_scene: EventWriter<LoadScene>) {
     commands.spawn((
-        SpriteBundle::default(),
+        SpriteBundle {
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, RenderLayer::Background.z())),
+            ..default()
+        },
         Background,
-        RenderLayers::layer(RenderLayer::Background as usize),
     ));
     load_scene.send(LoadScene(SceneId::Desk));
 }

@@ -1,4 +1,3 @@
-use bevy::render::view::RenderLayers;
 use bevy::sprite::Anchor;
 use bevy::{prelude::*, window::PrimaryWindow};
 use std::fmt::Write;
@@ -81,14 +80,13 @@ fn debug_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             .with_justify(JustifyText::Left),
             text_anchor: Anchor::CenterLeft,
             transform: Transform::from_translation(Vec3::new(
-                -HORIZONTAL_RESOLUTION / 2.0 * 9.0 / 10.0,
+                -HORIZONTAL_RESOLUTION / 2.0,
                 VERTICAL_RESOLUTION / 2.0 * 9.5 / 10.0,
-                10.0,
+                RenderLayer::DebugText.z(),
             )),
             ..default()
         },
         DebugKeyInputText,
-        RenderLayers::layer(RenderLayer::DebugText as usize),
     ));
 }
 
