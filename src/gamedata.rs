@@ -11,6 +11,7 @@ pub fn debug_text_style(asset_server: &Res<AssetServer>) -> TextStyle {
     TextStyle {
         font: asset_server.load("fonts/FiraMono-Regular.ttf"),
         font_size: 20.0,
+        color: Color::linear_rgb(1.0, 0.0, 0.0),
         ..default()
     }
 }

@@ -117,7 +117,7 @@ fn debug_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             transform: Transform::from_translation(Vec3::new(
                 -HORIZONTAL_RESOLUTION / 2.0 * 9.0 / 10.0,
                 VERTICAL_RESOLUTION / 2.0 * 9.0 / 10.0,
-                0.0,
+                10.0,
             )),
             ..default()
         },

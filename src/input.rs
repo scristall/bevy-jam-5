@@ -13,7 +13,7 @@ use crate::gamedata::{debug_text_style, RenderLayer};
 // )>;
 
 #[derive(Resource, Default)]
-pub struct MousePosition(Vec2);
+pub struct MousePosition(pub Vec2);
 
 #[derive(Component)]
 struct DebugKeyInputText;
@@ -83,7 +83,7 @@ fn debug_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             transform: Transform::from_translation(Vec3::new(
                 -HORIZONTAL_RESOLUTION / 2.0 * 9.0 / 10.0,
                 VERTICAL_RESOLUTION / 2.0 * 9.5 / 10.0,
-                0.0,
+                10.0,
             )),
             ..default()
         },

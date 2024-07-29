@@ -22,7 +22,7 @@ fn load_scene(
                     MaterialMesh2dBundle {
                         mesh: Mesh2dHandle(meshes.add(Rectangle::new(400.0, 300.0))),
                         material: tv_screen.clone(),
-                        transform: Transform::from_xyz(-400.0, -200.0, 2.0),
+                        transform: Transform::from_xyz(550.0, 0.0, 2.0),
                         ..default()
                     },
                     SceneItem(SceneId::Desk),
