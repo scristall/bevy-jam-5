@@ -7,8 +7,7 @@ use std::fmt::Write;
 #[derive(Component)]
 struct FreqText;
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-}
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {}
 
 fn update(
     player_radio_freqs: Query<&AmRadioFreq, Changed<AmRadioFreq>>,

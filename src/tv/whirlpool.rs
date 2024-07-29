@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct Whirlpool {
-    pub speed: f32
+    pub speed: f32,
 }
 
 fn update(mut whirlpools: Query<(&mut Transform, &Whirlpool)>) {

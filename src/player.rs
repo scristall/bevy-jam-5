@@ -22,6 +22,9 @@ pub struct UnloadScene(pub SceneId);
 #[derive(Event)]
 pub struct ResetUniverse;
 
+#[derive(Event)]
+pub struct TransitionToScene(pub SceneId);
+
 #[derive(Component)]
 pub struct SceneItem(pub SceneId);
 
@@ -58,16 +61,33 @@ impl Player {
 #[derive(Component)]
 struct DebugSceneText;
 
-fn scene_transition_system(mut player: ResMut<Player>, mut load_scene: EventWriter<LoadScene>) {
-    match &mut player.scene {
-        SceneState::Transitioning(prev, next, tick) => {
+fn scene_transition_system(
+    mut player: ResMut<Player>,
+    mut load_scene: EventWriter<LoadScene>,
+    mut transition_to_scene: EventReader<TransitionToScene>,
+) {
+    let next_state = match &mut player.scene {
+        SceneState::Transitioning(_, next, tick) => {
             *tick += 1;
             if *tick == TICKS_PER_TRANSITION {
                 load_scene.send(LoadScene(*next));
-                player.scene = SceneState::Active(*next);
+                Some(SceneState::Active(*next))
+            } else {
+                None
             }
         }
-        _ => (),
+        SceneState::Active(prev) => {
+            let mut state = None;
+            for item in transition_to_scene.read() {
+                if item.0 != *prev {
+                    state = Some(SceneState::Transitioning(*prev, item.0, 0));
+                }
+            }
+            state
+        }
+    };
+    if let Some(state) = next_state {
+        player.scene = state;
     }
 }
 
@@ -205,6 +225,7 @@ pub fn plugin(app: &mut App) {
     app.add_event::<LoadScene>();
     app.add_event::<UnloadScene>();
     app.add_event::<ResetUniverse>();
+    app.add_event::<TransitionToScene>();
     app.insert_resource(Player::new());
     app.add_systems(Startup, setup);
     app.add_systems(

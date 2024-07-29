@@ -8,7 +8,7 @@ use bevy::{
 };
 
 use crate::{
-    components::{self, ClickableLabel, ClickableShape},
+    components::{self, ClickableAction, ClickableLabel, ClickableShape, UpdateSet},
     gamedata::SceneId,
     player::{LoadScene, SceneItem},
     tv::TvScreenMaterial,
@@ -63,6 +63,7 @@ fn load_scene(
                     bottom_right: Vec2::new(925.0, -200.0),
                 }),
                 ClickableLabel("TV"),
+                ClickableAction::TransitionToScene(SceneId::Tv),
             ));
         }
         commands.spawn((
@@ -72,11 +73,10 @@ fn load_scene(
                 ..Default::default()
             },
             SceneItem(SceneId::Desk),
+        ));
     }
 }
 
-fn update() {}
-
 pub fn plugin(app: &mut App) {
-    app.add_systems(Update, (load_scene, update));
+    app.add_systems(Update, (load_scene).in_set(UpdateSet::PreScene));
 }

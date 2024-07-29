@@ -1,3 +1,4 @@
+use crate::gamedata::SceneId;
 use bevy::prelude::*;
 use enum_dispatch::enum_dispatch;
 
@@ -45,8 +46,8 @@ impl Rectangle {
         let top = y + height / 2.0;
         let bottom = y - height / 2.0;
         Rectangle {
-          top_left: Vec2::new(left, top),
-          bottom_right: Vec2::new(right, bottom),
+            top_left: Vec2::new(left, top),
+            bottom_right: Vec2::new(right, bottom),
         }
     }
 }
@@ -74,3 +75,8 @@ impl ClickableArea for Circle {
 
 #[derive(Component)]
 pub struct ClickableLabel(pub &'static str);
+
+#[derive(Component)]
+pub enum ClickableAction {
+    TransitionToScene(SceneId),
+}

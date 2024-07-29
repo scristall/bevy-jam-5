@@ -115,7 +115,7 @@ fn update_universe_button(
     mouse_pos: Res<MousePosition>,
     mouse_button: Res<ButtonInput<MouseButton>>,
     button: Query<&ClickableShape, With<RestartUniverseButton>>,
-    mut reset_universe: EventWriter<ResetUniverse>
+    mut reset_universe: EventWriter<ResetUniverse>,
 ) {
     if !mouse_button.just_pressed(MouseButton::Left) {
         return;
