@@ -12,6 +12,15 @@ pub enum SceneState {
     Transitioning(SceneId, SceneId, u8),
 }
 
+#[derive(Event)]
+pub struct LoadScene(pub SceneId);
+
+#[derive(Event)]
+pub struct UnloadScene(pub SceneId);
+
+#[derive(Component)]
+pub struct SceneItem(pub SceneId);
+
 #[derive(Component)]
 pub struct Background;
 
@@ -31,13 +40,19 @@ impl Player {
 #[derive(Component)]
 struct DebugSceneText;
 
-fn scene_transition_system(mut player: ResMut<Player>) {
+fn scene_transition_system(
+    mut player: ResMut<Player>,
+    mut load_scene: EventWriter<LoadScene>,
+    mut unload_scene: EventWriter<UnloadScene>,
+) {
     const TICKS_PER_TRANSITION: u8 = 15;
 
     match &mut player.scene {
-        SceneState::Transitioning(_, next, tick) => {
+        SceneState::Transitioning(prev, next, tick) => {
             *tick += 1;
             if *tick == TICKS_PER_TRANSITION {
+                unload_scene.send(UnloadScene(*prev));
+                load_scene.send(LoadScene(*next));
                 player.scene = SceneState::Active(*next);
             }
         }
@@ -119,7 +134,25 @@ fn setup(mut commands: Commands) {
     ));
 }
 
+fn unload_scene_items(
+    mut commands: Commands,
+    items: Query<(Entity, &SceneItem)>,
+    mut unload_scene: EventReader<UnloadScene>,
+) {
+    for unload_scene in unload_scene.read() {
+        for item in items.iter() {
+            let UnloadScene(scene) = unload_scene;
+            let SceneItem(item_scene) = item.1;
+            if item_scene == scene {
+                commands.entity(item.0).despawn();
+            }
+        }
+    }
+}
+
 pub fn plugin(app: &mut App) {
+    app.add_event::<LoadScene>();
+    app.add_event::<UnloadScene>();
     app.insert_resource(Player::new());
     app.add_systems(Startup, setup);
     app.add_systems(
@@ -128,6 +161,7 @@ pub fn plugin(app: &mut App) {
             scene_transition_system,
             keyboard_input_system,
             render_bg_system,
+            unload_scene_items,
         )
             .chain()
             .in_set(UpdateSet::PreScene),

@@ -17,6 +17,7 @@ mod mask;
 mod pixelate;
 mod player;
 mod radio;
+mod scenes;
 mod tv;
 
 use background::background_plugin;
@@ -41,6 +42,7 @@ fn main() {
             background_plugin,
             audio::plugin,
             player::plugin,
+            scenes::plugin,
         ))
         .add_plugins(pixelate::PixelatePlugin)
         .add_plugins(mask::MaskPlugin)

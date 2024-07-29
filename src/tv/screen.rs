@@ -9,11 +9,13 @@ use bevy::{
         },
         view::RenderLayers,
     },
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
 };
 
 #[derive(Component)]
 pub struct TvBackground;
+
+#[derive(Component)]
+pub struct TvScreenMaterial(pub Handle<ColorMaterial>);
 
 fn skewed_rectangle_builder(rect: Rectangle) -> Mesh {
     let [hw, hh] = [rect.half_size.x, rect.half_size.y];
@@ -41,7 +43,6 @@ pub fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut images: ResMut<Assets<Image>>,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let size = Extent3d {
@@ -89,25 +90,7 @@ pub fn setup(
         texture: Some(image_handle),
     });
 
-    let rect = Rectangle::new(400.0, 300.0);
-
-    commands.spawn(MaterialMesh2dBundle {
-        mesh: Mesh2dHandle(meshes.add(rect)),
-        material: material_handle.clone(),
-        transform: Transform::from_xyz(
-            -400.0, -200.0, 2.0,
-        ),
-        ..default()
-    });
-
-    commands.spawn(MaterialMesh2dBundle {
-        mesh: Mesh2dHandle(meshes.add(skewed_rectangle_builder(rect))),
-        material: material_handle.clone(),
-        transform: Transform::from_xyz(
-            -400.0, 200.0, 2.0,
-        ),
-        ..default()
-    });
+    commands.spawn(TvScreenMaterial(material_handle.clone()));
 
     commands.spawn((
         SpriteBundle {
