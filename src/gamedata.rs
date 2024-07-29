@@ -3,6 +3,7 @@ use bevy::prelude::*;
 #[derive(Debug, Clone, Copy)]
 pub enum RenderLayer {
     Background,
+    HighlightText,
     DebugText,
 }
 
@@ -11,6 +12,7 @@ impl RenderLayer {
         use RenderLayer::*;
         match self {
             Background => 0.0,
+            HighlightText => 5.0,
             DebugText => 10.0,
         }
     }
@@ -21,6 +23,21 @@ pub fn debug_text_style(asset_server: &Res<AssetServer>) -> TextStyle {
         font: asset_server.load("fonts/FiraMono-Regular.ttf"),
         font_size: 20.0,
         color: Color::linear_rgb(1.0, 0.0, 0.0),
+        ..default()
+    }
+}
+
+pub fn highlight_text_style(asset_server: &Res<AssetServer>) -> TextStyle {
+    TextStyle {
+        font: asset_server.load("fonts/FiraMono-Regular.ttf"),
+        font_size: 20.0,
+        color: LinearRgba {
+            red: 0.0,
+            blue: 1.0,
+            green: 1.0,
+            alpha: 1.0,
+        }
+        .into(),
         ..default()
     }
 }

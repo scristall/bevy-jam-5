@@ -1,10 +1,12 @@
+use bevy::render::RenderSet::Render;
 use bevy::sprite::Anchor;
 use bevy::{prelude::*, window::PrimaryWindow};
 use std::fmt::Write;
 
 use crate::camera::{MainCamera, HORIZONTAL_RESOLUTION, VERTICAL_RESOLUTION};
-use crate::components::{Keyboard, UpdateSet};
-use crate::gamedata::{debug_text_style, RenderLayer};
+use crate::components::{ClickableArea, ClickableLabel, ClickableShape, Keyboard, UpdateSet};
+use crate::gamedata::{debug_text_style, highlight_text_style, RenderLayer};
+use crate::player::Player;
 
 // type DebugText<'world, 'state, 'text> = ParamSet<'world, 'state, (
 //         Query<'world, 'state, &'text mut Text, With<DebugCursorPosText>>,
@@ -20,6 +22,9 @@ struct DebugKeyInputText;
 #[derive(Component)]
 struct DebugCursorPosText;
 
+#[derive(Component)]
+struct CursorText;
+
 fn input_update(
     q_window: Query<&Window, With<PrimaryWindow>>,
     q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
@@ -34,6 +39,41 @@ fn input_update(
         .map(|ray| ray.origin.truncate())
     {
         coords.0 = world_position;
+    }
+}
+
+fn highlight_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn((
+        Text2dBundle {
+            text: Text::from_section("", highlight_text_style(&asset_server))
+                .with_justify(JustifyText::Left),
+            text_anchor: Anchor::CenterLeft,
+            ..default()
+        },
+        CursorText,
+    ));
+}
+
+fn highlight_update(
+    cursor: Res<MousePosition>,
+    clickables: Query<(&ClickableShape, &ClickableLabel)>,
+    mut text: Query<(&mut Text, &mut Transform), With<CursorText>>,
+) {
+    for mut text in &mut text {
+        text.0.sections[0].value.clear();
+    }
+    for clickable in &clickables {
+        if clickable.0.contains(cursor.0) {
+            for mut text in &mut text {
+                *text.1 = Transform::from_translation(Vec3::new(
+                    cursor.0.x + 1.0,
+                    cursor.0.y + 1.0,
+                    RenderLayer::HighlightText.z(),
+                ));
+                write!(&mut text.0.sections[0].value, "{}", clickable.1 .0).unwrap();
+            }
+            return;
+        }
     }
 }
 
@@ -93,7 +133,9 @@ fn debug_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 pub fn plugin(app: &mut App) {
     app.init_resource::<MousePosition>();
     // The MousePosition and KeyInput resources will be extensively used by other systems; update them first!
+    app.add_systems(Startup, highlight_setup);
     app.add_systems(Update, (input_update).in_set(UpdateSet::Input));
+    app.add_systems(Update, (highlight_update).in_set(UpdateSet::PostScene));
     if cfg!(feature = "debug_input") {
         app.add_systems(Startup, debug_setup);
         app.add_systems(Update, (debug_update).in_set(UpdateSet::Debug));

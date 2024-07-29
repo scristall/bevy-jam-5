@@ -71,3 +71,6 @@ impl ClickableArea for Circle {
         pos.distance_squared(self.center) <= self.radius * self.radius
     }
 }
+
+#[derive(Component)]
+pub struct ClickableLabel(pub &'static str);
