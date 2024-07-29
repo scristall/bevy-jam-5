@@ -2,7 +2,7 @@ use crate::components::UpdateSet;
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 
-use crate::gamedata::AmRadioFreq;
+use crate::gamedata::{AmRadioFreq, PresetAmRadioFreq};
 
 // Outer bandwidth defines when the channel starts to be heard
 // Inner bandwidth defines when the channel is at max volume
@@ -12,7 +12,7 @@ const STATION_INNER_BANDWIDTH_DELTA: i32 = 10;
 #[derive(Component)]
 pub struct RadioStation {
     handle: Handle<AudioInstance>,
-    frequency: i32, // in kHz
+    frequency: AmRadioFreq,
     playing: bool,
 }
 
@@ -22,7 +22,7 @@ pub struct WhiteNoise(Handle<AudioInstance>);
 
 impl RadioStation {
     fn freq_in_band(&self, freq: i32) -> bool {
-        (freq - self.frequency).abs() <= STATION_OUTER_BANDWIDTH_DELTA
+        (freq - self.frequency.0).abs() <= STATION_OUTER_BANDWIDTH_DELTA
     }
 
     fn freq_to_volume(&self, freq: i32) -> f64 {
@@ -30,7 +30,7 @@ impl RadioStation {
             return 0.0;
         }
 
-        let delta = (freq - self.frequency).abs();
+        let delta = (freq - self.frequency.0).abs();
         if delta <= STATION_INNER_BANDWIDTH_DELTA {
             return 1.0;
         }
@@ -94,7 +94,7 @@ fn setup(mut commands: Commands, audio: Res<Audio>, asset_server: Res<AssetServe
             .looped()
             .paused()
             .handle(),
-        frequency: 700,
+        frequency: PresetAmRadioFreq::Numbers.into(),
         playing: false,
     });
     commands.spawn(RadioStation {
@@ -103,7 +103,7 @@ fn setup(mut commands: Commands, audio: Res<Audio>, asset_server: Res<AssetServe
             .looped()
             .paused()
             .handle(),
-        frequency: 750,
+        frequency: PresetAmRadioFreq::Music.into(),
         playing: false,
     });
     commands.spawn(RadioStation {
@@ -112,7 +112,7 @@ fn setup(mut commands: Commands, audio: Res<Audio>, asset_server: Res<AssetServe
             .looped()
             .paused()
             .handle(),
-        frequency: 610,
+        frequency: PresetAmRadioFreq::News.into(),
         playing: false,
     });
 }
