@@ -44,6 +44,7 @@ bevy = { version = "0.14", default-features = false, features = [
 ] }
 bevy_kira_audio = "0.20.0"
 enum_dispatch = "0.3.13"
+rand = "0.8.5"
 
 [features]
 default = []

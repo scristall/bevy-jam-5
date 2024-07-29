@@ -17,6 +17,7 @@ mod mask;
 mod pixelate;
 mod player;
 mod radio;
+mod right_speaker;
 mod scenes;
 mod tv;
 
@@ -43,6 +44,7 @@ fn main() {
             audio::plugin,
             player::plugin,
             scenes::plugin,
+            right_speaker::plugin,
         ))
         .add_plugins(pixelate::PixelatePlugin)
         .add_plugins(mask::MaskPlugin)

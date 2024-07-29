@@ -3043,6 +3043,7 @@ dependencies = [
  "bevy",
  "bevy_kira_audio",
  "enum_dispatch",
+ "rand",
 ]
 
 [[package]]
