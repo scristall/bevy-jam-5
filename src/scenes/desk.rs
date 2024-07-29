@@ -44,6 +44,14 @@ fn load_scene(
 ) {
     for load_scene in load_scene.read() {
         if load_scene.0 == SceneId::Desk {
+            commands.spawn((
+                SpriteBundle {
+                    texture: asset_server.load("images/scenes/desk_top_layer.png"),
+                    transform: Transform::from_xyz(0.0, 0.0, 4.0),
+                    ..Default::default()
+                },
+                SceneItem(SceneId::Desk),
+            ));
             if let Ok(TvScreenMaterial(tv_screen)) = tv_screen.get_single() {
                 let mesh = skewed_rectangle_builder(Rectangle::new(262.0, 240.0));
 
@@ -57,14 +65,6 @@ fn load_scene(
                     SceneItem(SceneId::Desk),
                 ));
             }
-            commands.spawn((
-                SpriteBundle {
-                    texture: asset_server.load("images/scenes/desk_top_layer.png"),
-                    transform: Transform::from_xyz(0.0, 0.0, 4.0),
-                    ..Default::default()
-                },
-                SceneItem(SceneId::Desk),
-            ));
         }
     }
 }

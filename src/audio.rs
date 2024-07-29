@@ -1,4 +1,4 @@
-use crate::components::UpdateSet;
+use crate::{components::UpdateSet, player::Player};
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 
@@ -49,6 +49,7 @@ fn update(
     mut radio_stations: Query<&mut RadioStation>,
     mut audio_instances: ResMut<Assets<AudioInstance>>,
     time: Res<Time>,
+    player: Res<Player>,
 ) {
     if radio_freqs.is_empty() {
         return;
@@ -68,6 +69,12 @@ fn update(
                     let station_volume = radio_station.freq_to_volume(radio_freq.0);
                     instance.set_volume(station_volume, AudioTween::default());
 
+                    if player.right_speaker_broken {
+                        instance.set_panning(0.0, AudioTween::default());
+                    } else {
+                        instance.set_panning(0.5, AudioTween::default());
+                    }
+
                     whitenoise_volume = 0.5 + 0.5 * (1.0 - station_volume);
                 } else {
                     instance.pause(AudioTween::default());
@@ -78,6 +85,12 @@ fn update(
     }
     if let Some(instance) = audio_instances.get_mut(&whitenoise.0) {
         instance.set_volume(whitenoise_volume, AudioTween::default());
+
+        if player.right_speaker_broken {
+            instance.set_panning(0.0, AudioTween::default());
+        } else {
+            instance.set_panning(0.5, AudioTween::default());
+        }
     }
 }
 

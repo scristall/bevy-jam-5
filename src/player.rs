@@ -42,6 +42,7 @@ pub struct Player {
     pub behind_puzzle_state: [usize; 6],
     pub keypad_drawer_puzzle_state: [usize; 3],
     pub lightbulb_unlock: Option<LightbulbColor>,
+    pub right_speaker_broken: bool
 }
 
 impl Player {
@@ -51,6 +52,7 @@ impl Player {
             behind_puzzle_state: [0; 6],
             keypad_drawer_puzzle_state: [0; 3],
             lightbulb_unlock: None,
+            right_speaker_broken: false,
         }
     }
 }
