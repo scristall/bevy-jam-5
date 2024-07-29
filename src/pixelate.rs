@@ -292,7 +292,6 @@ impl FromWorld for PostProcessPipeline {
 pub struct PixelateSettings {
     pub block_size: f32,
     // WebGL2 structs must be 16 byte aligned.
-    #[cfg(feature = "webgl2")]
     _webgl2_padding: Vec3,
 }
 
@@ -311,8 +310,8 @@ fn sawtooth_wave(time: f32) -> f32 {
 fn update_settings(mut settings: Query<&mut PixelateSettings>, time: Res<Time>) {
     for mut setting in &mut settings {
         let intensity_scale = 3.0;
-        let intensity_base = 3.0;
-        let intensity_speed = 1.0 / 1200.0;
+        let intensity_base = 5.0;
+        let intensity_speed = 1.0 / 240.0;
 
         let mut intensity = sawtooth_wave(intensity_speed * time.elapsed_seconds());
 

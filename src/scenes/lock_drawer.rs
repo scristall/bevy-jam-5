@@ -39,11 +39,11 @@ fn update(
 
     for key in key.iter() {
         if key.1.contains(mouse_pos.0) {
-            player.opened_key_drawer = true;
-            player.scene = SceneState::ForceTransition(
-                SceneId::LockDrawer,
-                SceneId::LockDrawerSolved,
-            );
+            if player.has_key {
+                player.opened_key_drawer = true;
+                player.scene =
+                    SceneState::ForceTransition(SceneId::LockDrawer, SceneId::LockDrawerSolved);
+            }
         }
     }
 }

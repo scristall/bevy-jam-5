@@ -7,6 +7,9 @@ var ts: sampler;
 
 struct PixelateSettings {
     block_size: f32,
+    _padding1: f32,
+    _padding2: f32,
+    _padding3: f32,
 };
 @group(0) @binding(2)
 var<uniform> pixelate: PixelateSettings;

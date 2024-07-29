@@ -13,7 +13,6 @@ mod camera;
 mod components;
 mod gamedata;
 mod input;
-mod mask;
 mod pixelate;
 mod player;
 mod right_speaker;
@@ -46,6 +45,5 @@ fn main() {
             right_speaker::plugin,
         ))
         .add_plugins(pixelate::PixelatePlugin)
-        .add_plugins(mask::MaskPlugin)
         .run();
 }
